@@ -1,0 +1,1 @@
+- Fix Input of Textfield for amount: split in 2: dropdown for units
