@@ -1,31 +1,44 @@
-import 'package:mysql_client/mysql_client.dart';
-
-abstract class Table {
+abstract class DatabaseTable {
   abstract String TABLENAME;
   abstract Map<String, String> props;
+
+  toJson(dynamic argument1, dynamic argument2);
 }
 
-class RecipeTable extends Table {
+class RecipeTable extends DatabaseTable {
   String TABLENAME = "recipe";
   String NAME = 'name';
-  @override
-  Map<String, String> props = {"name": "", "rating": "", "prep_time": ""};
 
-  RecipeTable(Map<String, String> props) {
-    this.props = props;
+  // RecipeTable(Map<String, String> props) {
+  //   this.props = props;
+  // }
+
+  @override
+  Map<String, String> props = {"name": "", "prep_time": ""};
+
+  @override
+  toJson(dynamic name, dynamic prep_time) {
+    // TODO: implement toJson
+    return {'name': name, "prep_time": prep_time};
   }
 }
 
-class RecipeItemTable extends Table {
+class RecipeItemTable extends DatabaseTable {
   String TABLENAME = "recipe_item";
   Map<String, String> props = {"name": "", "recipe_id": ""};
 
-  RecipeItemTable(Map<String, String> props) {
-    this.props = props;
+  // RecipeItemTable(Map<String, String> props) {
+  //   this.props = props;
+  // }
+
+  @override
+  toJson(dynamic argument1, dynamic argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
   }
 }
 
-class AmountTable extends Table {
+class AmountTable extends DatabaseTable {
   String TABLENAME = "amount";
   Map<String, String> props = {
     "amount": "",
@@ -36,5 +49,11 @@ class AmountTable extends Table {
 
   RecipeItemTable(Map<String, String> props) {
     this.props = props;
+  }
+
+  @override
+  toJson(dynamic argument1, dynamic argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
   }
 }

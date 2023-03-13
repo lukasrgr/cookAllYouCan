@@ -2,14 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
-class ShoppingList extends StatefulWidget {
-  const ShoppingList({super.key});
+class Calendar extends StatefulWidget {
+  const Calendar({super.key});
 
   @override
-  State<ShoppingList> createState() => _ShoppingListState();
+  State<Calendar> createState() => _CalendarState();
 }
 
-class _ShoppingListState extends State<ShoppingList> {
+class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return Container(
