@@ -16,9 +16,6 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 - TODO's:
-    - On remove of recipe, whole list is reinitialized: 
-        - just remove one item do not fetch data again
-        - create PopUp to check again for deleting 
     - Filter for recipes
     - Pagination
     - User Authentification
@@ -28,4 +25,7 @@ samples, guidance on mobile development, and a full API reference.
     - add image to recipe
     - refresh possibility
     - Change queries to GraphiQL
+    - adjust selectedDayColor in calendar
+    - editRecipe
+
 

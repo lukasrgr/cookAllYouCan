@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cook_all_you_can/button.dart';
 import 'package:cook_all_you_can/calendar/calendar.dart';
-import 'package:cook_all_you_can/recipe/edit/showRecipe.dart';
+import 'package:cook_all_you_can/recipe/showRecipe.dart';
 import 'package:cook_all_you_can/shared/shared.dart';
 import 'package:cook_all_you_can/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +23,9 @@ class Recipe {
   dynamic prep_time;
   dynamic rating;
   int number_of_people;
-  Recipe(this.name, this.prep_time, this.rating, this.number_of_people);
+  int id;
+  Recipe(
+      this.name, this.prep_time, this.rating, this.number_of_people, this.id);
 }
 
 class RecipeItem {
@@ -37,7 +39,7 @@ class RecipeItem {
 class RecipeAmount {
   int recipe_item_id;
   int recipe_id;
-  int amount;
+  double amount;
   String unit;
   RecipeAmount(this.recipe_item_id, this.recipe_id, this.amount, this.unit);
 }
@@ -67,7 +69,7 @@ class _State extends State<Homescreen> {
   TextEditingController generalController = TextEditingController();
 
   List<Recipe> recipes = [];
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   var recipes2;
   final supabase = Supabase.instance.client;
 
@@ -82,7 +84,7 @@ class _State extends State<Homescreen> {
     recipes = [];
     await supabase
         .from(RecipeTable().TABLENAME)
-        .select('name, prep_time, number_of_people')
+        .select('name, prep_time, number_of_people, id')
         .then((value) => {
               for (var i = 0; i < value.length; i++)
                 {
@@ -94,7 +96,8 @@ class _State extends State<Homescreen> {
                       value[i]['rating'] != null
                           ? value[i]['rating'].toString()
                           : '-',
-                      value[i]['number_of_people']))
+                      value[i]['number_of_people'],
+                      value[i]['id']))
                 }
             });
 
@@ -111,15 +114,18 @@ class _State extends State<Homescreen> {
   }
 
   /// Find better solution for grouped deleting
-  Future<bool> removeRecipe(String recipeName) async {
+  Future<void> removeRecipe(String recipeName) async {
     int recipe_id = 0;
-    var future = new Future.value(true);
+    var future = new Future.value();
     await supabase
         .from(RecipeTable().TABLENAME)
         .select('id')
         .match({'name': recipeName}).then((value) async {
       recipe_id = value[0]['id'];
-
+      await supabase
+          .from(CalendarDayWithEvent().TABLENAME)
+          .delete()
+          .match({'recipe_id': recipe_id});
       await supabase
           .from(AmountTable().TABLENAME)
           .delete()
@@ -128,33 +134,40 @@ class _State extends State<Homescreen> {
           .from(RecipeItemTable().TABLENAME)
           .delete()
           .match({'recipe_id': recipe_id});
-      supabase
+      await supabase
           .from("recipe_manual")
           .select('id')
-          .match({'recipe_id': recipe_id})
-          .then((value) async {
-            var manual_id = value[0]['id'];
+          .match({'recipe_id': recipe_id}).then((value) async {
+        print(value);
+        if (value.length > 0) {
+          var manual_id = value[0]['id'];
+          await supabase
+              .from("recipe_manual_steps")
+              .delete()
+              .match({'manual_id': manual_id});
+          await supabase
+              .from("recipe_manual")
+              .delete()
+              .match({'recipe_id': recipe_id});
+        }
 
-            await supabase
-                .from("recipe_manual_steps")
-                .delete()
-                .match({'manual_id': manual_id});
-            await supabase
-                .from("recipe_manual")
-                .delete()
-                .match({'recipe_id': recipe_id});
-            await supabase
-                .from(RecipeTable().TABLENAME)
-                .delete()
-                .match({'id': recipe_id});
-          })
-          .onError((error, stackTrace) => null)
-          .whenComplete(() => {
-                setState(() {
-                  updateRecipes();
-                  future = new Future.value(true);
-                })
-              });
+        await supabase
+            .from(CalendarDayWithEvent().TABLENAME)
+            .delete()
+            .match({'recipe_id': recipe_id}).whenComplete(() async {
+          await supabase
+              .from(RecipeTable().TABLENAME)
+              .delete()
+              .match({'id': recipe_id}).whenComplete(() {
+            setState(() {
+              future = new Future.delayed(Duration(seconds: 1));
+            });
+          });
+        });
+      }).onError((error, stackTrace) {
+        print(error);
+        return Future.error(error!);
+      });
     });
 
     return future;
@@ -176,10 +189,6 @@ class _State extends State<Homescreen> {
                   iconColor: primaryColor,
                   title: Text("Rezept hinzufügen"),
                   onTap: () {
-                    setState() {
-                      this.updateRecipes();
-                    }
-
                     Navigator.of(context)
                         .push(
                           MaterialPageRoute(
@@ -204,18 +213,34 @@ class _State extends State<Homescreen> {
                               ),
                             );
                           },
-                          title: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          onLongPress: () {
+                            confirmRemovePopUp(context).then((value) {
+                              if (value) {
+                                var snackbar = showNotification(
+                                    context, "Rezept wird entfernt");
+                                removeRecipe(recipe.name).then((value) => {
+                                      updateRecipes(),
+                                    });
+                              }
+                            });
+                          },
+                          title: Column(
+                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(children: [
-                                      Text(recipe.name,
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              color: primaryColor)),
-                                    ]),
+                                    // Expanded(
+                                    // child:
+                                    // Row(children: [
+                                    Text(recipe.name,
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            color: primaryColor,
+                                            overflow: TextOverflow.clip)),
+                                    // ]
+                                    // )
+                                    // ),
 
                                     /// TODO implement rating
                                     // Row(
@@ -238,32 +263,20 @@ class _State extends State<Homescreen> {
                                       ],
                                     )
                                   ]),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.highlight_remove_outlined,
-                                    ),
-                                    tooltip: 'remove recipe',
-                                    onPressed: () {
-                                      confirmRemovePopUp(context).then((value) {
-                                        if (value) {
-                                          var snackbar = showNotification(
-                                              context, "Rezept wird entfernt");
-                                          removeRecipe(recipe.name).then(
-                                              (value) => {
-                                                    sleep(Duration(seconds: 1)),
-                                                    snackbar.close()
-                                                  });
-                                        }
-                                      });
-                                    },
-                                    color: Colors.red[300],
-                                  )
-                                ],
-                              ),
+                              // Column(
+                              //   crossAxisAlignment: CrossAxisAlignment.end,
+                              //   mainAxisAlignment: MainAxisAlignment.end,
+                              //   children: [
+                              //     IconButton(
+                              //       icon: const Icon(
+                              //         Icons.highlight_remove_outlined,
+                              //       ),
+                              //       tooltip: 'remove recipe',
+
+                              //       color: Colors.red[300],
+                              //     )
+                              //   ],
+                              // ),
                             ],
                           ),
                           // subtitle: Text('Beschreibung'),
@@ -272,123 +285,10 @@ class _State extends State<Homescreen> {
                 } else if (snapshot.hasError) {
                   children = <Widget>[];
                 } else {
-                  children = const <Widget>[
+                  children = <Widget>[
                     Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
-                        child: CircularProgressIndicator())
-                  ];
-                }
-
-                return Center(
-                    child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: children,
-                ));
-              }));
-
-      ///
-    } else if (_selectedIndex == 1) {
-      return ShoppingList();
-    } else if (_selectedIndex == 2) {
-      return Calendar();
-    }
-  }
-
-  buildViews() {
-    /// TODO use original suggested navigation
-    if (_selectedIndex == 0) {
-      return SingleChildScrollView(
-          child: FutureBuilder<List<Recipe>>(
-              future: recipes2,
-              builder:
-                  (BuildContext context, AsyncSnapshot<List<Recipe>> snapshot) {
-                List<Widget> children = <Widget>[];
-                List<DataRow> rows = [];
-
-                rows.add(
-                  DataRow(cells: <DataCell>[
-                    DataCell(Text("Add a new recipe")),
-                    DataCell(Text("")),
-                    DataCell(IconButton(
-                      icon: const Icon(Icons.add_circle),
-                      tooltip: 'add recipe',
-                      onPressed: () {
-                        setState() {
-                          this.updateRecipes();
-                        }
-
-                        Navigator.of(context)
-                            .push(
-                              MaterialPageRoute(
-                                builder: (context) => RecipePopUp(""),
-                              ),
-                            )
-                            .whenComplete(() => {this.updateRecipes()});
-                      },
-                      color: Colors.green,
-                    ))
-                  ]),
-                );
-                if (snapshot.hasData) {
-                  for (var recipe in recipes) {
-                    rows.add(DataRow(cells: <DataCell>[
-                      DataCell(onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => RecipePage(recipe.name),
-                          ),
-                        );
-                      }, Text(recipe.name)),
-                      DataCell(Text(recipe.prep_time.toString())),
-                      DataCell(IconButton(
-                        icon: const Icon(Icons.highlight_remove_outlined),
-                        tooltip: 'remove recipe',
-                        onPressed: () {
-                          // removeRecipe(recipe.name);
-                        },
-                        color: Color.fromARGB(255, 206, 14, 11),
-                      ))
-                    ]));
-                  }
-
-                  children.add(DataTable(
-                      dataRowHeight: 60,
-                      dataTextStyle:
-                          TextStyle(fontSize: 18, color: Colors.black),
-                      columns: const <DataColumn>[
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'Name',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              'Vorbereitungszeit',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                        DataColumn(
-                          label: Expanded(
-                            child: Text(
-                              '',
-                              style: TextStyle(fontStyle: FontStyle.italic),
-                            ),
-                          ),
-                        ),
-                      ],
-                      rows: rows));
-                } else if (snapshot.hasError) {
-                  children = <Widget>[];
-                } else {
-                  children = const <Widget>[
-                    Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: CircularProgressIndicator())
+                        child: Container())
                   ];
                 }
 
@@ -441,7 +341,7 @@ class _State extends State<Homescreen> {
     setState(() {
       _selectedIndex = index;
     });
-    buildViews();
+    buildViews2();
   }
 
   // _showMyDialog() async {

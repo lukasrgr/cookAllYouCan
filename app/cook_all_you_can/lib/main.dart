@@ -9,7 +9,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'button.dart';
 
 Future<void> main() async {
-  //add your keys here
+  await Supabase.initialize(
+    url: 'https://uxijslvfkmufudrbuyct.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4aWpzbHZma211ZnVkcmJ1eWN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzc5NjY1ODksImV4cCI6MTk5MzU0MjU4OX0.pO0HBzT9tPUqDgI7lmIa8n7UUc0YNvzaOmj7YFwc0kA',
+  );
   runApp(const MyApp());
 }
 

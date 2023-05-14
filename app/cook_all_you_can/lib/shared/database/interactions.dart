@@ -52,9 +52,9 @@ class Database {
   final supabase = Supabase.instance.client;
 
   Future<void> insertIntoTable(DatabaseTable table) async {
-    String insertString = json.encode(table.props);
+    // String insertString = json.encode(table.props);
 
-    await supabase.from(table.TABLENAME).insert(insertString);
+    // await supabase.from(table.TABLENAME).insert(insertString);
   }
 
   Future<Map<int, Map<String, String?>>> selectFrom(
@@ -62,7 +62,7 @@ class Database {
     // TODO: probably search for library
     var map = <int, Map<String, String?>>{};
     print("here");
-    print(table.props);
+    // print(table.props);
 
     PostgrestList list =
         await supabase.from(table.TABLENAME).select(columns.join(','));

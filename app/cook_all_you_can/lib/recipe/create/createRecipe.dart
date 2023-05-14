@@ -20,10 +20,24 @@ class RecipePopUp extends StatefulWidget {
 
 class _RecipePopUpState extends State<RecipePopUp> {
   String recipe_name = "";
-  List<String> list = <String>['1', '2', '3', '4'];
-  String dropdownValue = '1';
+  List<String> numberOfPeopleList = <String>['1', '2', '3', '4'];
+  String numberOfPeopleDropdownValue = '1';
 
-  List<String> units = <String>['g', 'ml', 'Stück'];
+  List<String> importanceList = <String>['Essentiell', 'Optional'];
+  List<String> importanceDropdownValue = ['Essentiell'];
+
+  List<String> units = <String>[
+    'g',
+    'ml',
+    'Stück',
+    'Prise',
+    'TL',
+    'EL',
+    'Dose',
+    'MS',
+    'Packung',
+    'Scheibe'
+  ];
   List<String> defaultUnit = ['g'];
 
   List<Recipe> recipes = [];
@@ -75,6 +89,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
       amountController.add(TextEditingController());
       defaultUnit.add("g");
       ingredients.add(Ingredient("Zutat", "", ""));
+      importanceDropdownValue.add("Essentiell");
     });
   }
 
@@ -97,7 +112,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
         .insert({
           "name": generalController[0]?.text ?? "----",
           "prep_time": generalController[1]?.text ?? 0,
-          'number_of_people': dropdownValue
+          'number_of_people': numberOfPeopleDropdownValue
         })
         .select('id')
         .onError((error, stackTrace) => print("no data"))
@@ -107,7 +122,11 @@ class _RecipePopUpState extends State<RecipePopUp> {
           Map<int, Map<String, dynamic>> updateIngredients = new Map();
           for (var i = 0; i < ingredients.length; i++) {
             var ingredient = ingredientController[i].text;
-            updateIngredients[i] = {'name': ingredient, 'recipe_id': recipe_id};
+            updateIngredients[i] = {
+              'name': ingredient,
+              'recipe_id': recipe_id,
+              'importance': importanceDropdownValue[i]
+            };
           }
 
           /// RecipeItemTable
@@ -125,7 +144,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
               updateIngredientAmount[i] = {
                 'recipe_item_id': recipe_item_id,
                 'recipe_id': recipe_id,
-                'amount': amount,
+                'amount': amount.replaceAll(',', '.'),
                 'unit': defaultUnit[i]
               };
             }
@@ -153,6 +172,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
                     await supabase
                         .from("recipe_manual_steps")
                         .insert(updateSteps.values.toList())
+                        .select('id')
                         .whenComplete(() {
                       Navigator.of(context).pop();
                       return new Future.value();
@@ -192,7 +212,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
         body: Form(
             key: _formKey,
             child: ListView.builder(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(10),
                 itemCount: 1,
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
@@ -220,9 +240,24 @@ class _RecipePopUpState extends State<RecipePopUp> {
                             children: [
                               Text("Anzahl von Personen"),
                               Expanded(
-                                  child: Align(child: buildDropdown(context)))
+                                  child: Align(
+                                      child: buildDropdown(
+                                          context,
+                                          numberOfPeopleDropdownValue,
+                                          numberOfPeopleList)))
                             ]),
                         for (var x = 0; x < ingredients.length; x++) ...[
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Text("Wichtigkeit"),
+                                Expanded(
+                                    child: Align(
+                                        child: buildDropdown(
+                                            context,
+                                            importanceDropdownValue[x],
+                                            importanceList)))
+                              ]),
                           Row(
                             children: <Widget>[
                               IconButton(
@@ -251,11 +286,12 @@ class _RecipePopUpState extends State<RecipePopUp> {
                                         border: OutlineInputBorder(),
                                         labelText: 'Menge',
                                         isDense: true),
-                                    validator: (value) =>
-                                        validateTextForm(value))),
+                                    validator: (value) {
+                                      validateTextForm(value);
+                                    })),
                             Spacer(),
                             Flexible(
-                                flex: 1,
+                                flex: 2,
                                 child: DropdownButton<String>(
                                   value: defaultUnit[x],
                                   onChanged: (String? value) {
@@ -507,7 +543,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
   // }
 
   @override
-  Widget buildDropdown(BuildContext context) {
+  Widget buildDropdown(
+      BuildContext context, String dropdownValue, List<String> list) {
     return Flexible(
         flex: 1,
         child: DropdownButton<String>(
@@ -521,6 +558,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
           onChanged: (String? value) {
             // This is called when the user selects an item.
             setState(() {
+              print(value);
               dropdownValue = value!.toString();
             });
           },

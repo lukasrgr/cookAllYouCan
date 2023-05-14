@@ -1,8 +1,15 @@
 abstract class DatabaseTable {
   abstract String TABLENAME;
-  abstract Map<String, String> props;
 
   toJson(dynamic argument1, dynamic argument2);
+}
+
+class CalendarTable {
+  String TABLENAME = "calendar";
+}
+
+class CalendarDayWithEvent {
+  String TABLENAME = "calendar_day_with_event";
 }
 
 class RecipeTable extends DatabaseTable {
@@ -53,6 +60,39 @@ class AmountTable extends DatabaseTable {
 
   @override
   toJson(dynamic argument1, dynamic argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}
+
+class ShoppingListFromRecipes extends DatabaseTable {
+  @override
+  String TABLENAME = 'shopping_list_from_recipes';
+
+  @override
+  toJson(argument1, argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}
+
+class ShoppingListItems extends DatabaseTable {
+  @override
+  String TABLENAME = 'shopping_list_items';
+
+  @override
+  toJson(argument1, argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}
+
+class ShoppingListGeneral extends DatabaseTable {
+  @override
+  String TABLENAME = 'shopping_list_general';
+
+  @override
+  toJson(argument1, argument2) {
     // TODO: implement toJson
     throw UnimplementedError();
   }

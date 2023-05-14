@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../recipe/recipes.dart';
+import 'database/table.dart';
 
 const primaryColor = Color(0xFF81C784);
 const secondaryColor = Colors.black;
@@ -115,4 +119,124 @@ confirmRemovePopUp(BuildContext context) async {
       );
     },
   );
+}
+
+createPopUp() async {
+  return AlertDialog(
+    content: SingleChildScrollView(
+      child: ListBody(
+        children: const <Widget>[
+          Text('Willst du das Rezept wirklich entfernen?'),
+        ],
+      ),
+    ),
+    actions: <Widget>[
+      Row(
+        children: [
+          Column(
+            children: [
+              TextButton(
+                child: const Text('Ja'),
+                onPressed: () {
+                  // Navigator.of(context).pop(true);
+                },
+              ),
+            ],
+          ),
+          Spacer(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                child: const Text('Nein'),
+                onPressed: () {
+                  // Navigator.of(context).pop(false);
+                },
+              ),
+            ],
+          )
+        ],
+      )
+    ],
+  );
+}
+
+Future<List<Recipe>> updateRecipes() async {
+  final supabase = Supabase.instance.client;
+  List<Recipe> recipes = [];
+  await supabase
+      .from(RecipeTable().TABLENAME)
+      .select('name, prep_time, number_of_people, id')
+      .then((value) => {
+            for (var i = 0; i < value.length; i++)
+              {
+                recipes.add(
+                  Recipe(
+                      value[i]['name'].toString(),
+                      value[i]['prep_time'] != null
+                          ? value[i]['prep_time'].toString() + ' Min.'
+                          : '-',
+                      value[i]['rating'] != null
+                          ? value[i]['rating'].toString()
+                          : '-',
+                      value[i]['number_of_people'],
+                      value[i]['id']),
+                )
+              }
+          })
+      .whenComplete(() {
+    return new Future.value(recipes);
+  });
+
+  return new Future.value(recipes);
+
+  /// Weird behavior of setState
+}
+
+createBasicAlertDialog(BuildContext context, String text) {
+  // Scaffold is a layout for
+  // the major Material Components.
+  return showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(text),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            Row(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    TextButton(
+                      child: const Text('Nein'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ],
+                ),
+                Spacer(),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      child: const Text('Ja'),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            )
+          ],
+        );
+      });
 }

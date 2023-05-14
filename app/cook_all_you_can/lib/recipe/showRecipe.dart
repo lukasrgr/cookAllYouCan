@@ -1,5 +1,6 @@
 import 'package:cook_all_you_can/recipe/recipes.dart';
 import 'package:cook_all_you_can/shared/database/table.dart';
+import 'package:cook_all_you_can/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -93,11 +94,15 @@ class ShowRecipeState extends State<ShowRecipe> {
 
         ///
         .then((value) async {
+      if ((value as List).isEmpty) {
+        wholeRecipe2 = new Future.value();
+        return;
+      }
       dropdownValue = value[0]['number_of_people'].toString();
       originalNumberOfPeople = dropdownValue;
       recipe_id = value[0]['id'];
       recipe = new Recipe(value[0]['name'], value[0]['prep_time'],
-          value[0]['rating'], value[0]['number_of_people']);
+          value[0]['rating'], value[0]['number_of_people'], value[0]['id']);
 
       await supabase
           .from(RecipeItemTable().TABLENAME)
@@ -106,8 +111,6 @@ class ShowRecipeState extends State<ShowRecipe> {
 
           ///
           .then((map) async {
-        print("map ${map.toString()}");
-
         /// Iterate over array
         // List<RecipeItem> ingredients = [];
         for (var i = 0; i < map.length; i++) {
@@ -124,8 +127,13 @@ class ShowRecipeState extends State<ShowRecipe> {
             ///
             .then((map) async {
           for (var i = 0; i < map.length; i++) {
-            amount.add(new RecipeAmount(map[i]['recipe_item_id'], recipe_id,
-                map[i]['amount'], map[i]['unit']));
+            amount.add(new RecipeAmount(
+                map[i]['recipe_item_id'],
+                recipe_id,
+                map[i]['amount'] is int
+                    ? (map[i]['amount'] as int).toDouble()
+                    : map[i]['amount'],
+                map[i]['unit']));
           }
         });
       });
@@ -134,6 +142,12 @@ class ShowRecipeState extends State<ShowRecipe> {
           .from("recipe_manual")
           .select('steps, id')
           .match({'recipe_id': recipe_id}).then((map) async {
+        if ((map as List).isEmpty) {
+          wholeRecipe = WholeRecipeContent(recipe, recipeItem,
+              new RecipeManual(0, recipe_id), recipeManualSteps, amount);
+          return;
+        }
+
         var recipe_manual_id = map[0]['id'];
 
         recipeManual = new RecipeManual(map[0]['steps'], recipe_id);
@@ -155,11 +169,15 @@ class ShowRecipeState extends State<ShowRecipe> {
                   })
                 });
       });
+    }).onError((error, stackTrace) {
+      return new Future.value();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+
     // Build a Form widget using the _formKey created above.
     return SingleChildScrollView(
         child: FutureBuilder<WholeRecipeContent>(
@@ -170,7 +188,7 @@ class ShowRecipeState extends State<ShowRecipe> {
 
               /// TODO: category
               List<DataRow> ingredients = [];
-              List<DataRow> manualSteps = [];
+              List<Widget> manualSteps = [];
 
               if (!snapshot.hasData) {
                 return Center(
@@ -205,11 +223,14 @@ class ShowRecipeState extends State<ShowRecipe> {
                     ));
                   }
 
-                  if (wholeRecipe.recipeItem.isNotEmpty) {
+                  if (wholeRecipe.recipeItem.isNotEmpty &&
+                      wholeRecipe.amount.isNotEmpty) {
                     for (var x = 0; x < wholeRecipe.recipeItem.length; x++) {
-                      var amount = wholeRecipe.amount.firstWhere((element) =>
-                          element.recipe_item_id ==
-                          wholeRecipe.recipeItem[x].id);
+                      var amount = wholeRecipe.amount.firstWhere(
+                          (element) =>
+                              element.recipe_item_id ==
+                              wholeRecipe.recipeItem[x].id,
+                          orElse: null);
                       ingredients.add(DataRow(
                         cells: <DataCell>[
                           DataCell(
@@ -226,30 +247,52 @@ class ShowRecipeState extends State<ShowRecipe> {
                         x < wholeRecipe.recipeManualSteps.length;
                         x++) {
                       //
-                      manualSteps.add(DataRow(cells: <DataCell>[
-                        DataCell(Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          verticalDirection: VerticalDirection.down,
-                          children: [
-                            Column(
-                                verticalDirection: VerticalDirection.down,
+                      manualSteps.add(Container(
+                              width: mediaQuery.size.width * 0.9,
+                              padding: EdgeInsets.all(10),
+                              child: Column(
                                 children: [
                                   Text(
-                                    "Schritt ${x + 1}: ",
-                                    style: TextStyle(color: Colors.white),
+                                    'Schritt ${x + 1}',
+                                    style: TextStyle(
+                                        color: primaryColor, fontSize: 20),
                                   ),
-                                ]),
-                            Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 10)),
                                   Text(
                                     wholeRecipe.recipeManualSteps[x].step,
                                     style: TextStyle(color: Colors.white),
                                   ),
-                                ])
-                          ],
-                        ))
-                      ]));
+                                ],
+                              ))
+                          //   DataRow(cells: <DataCell>[
+                          //   DataCell(Row(
+                          //     mainAxisAlignment: MainAxisAlignment.start,
+                          //     verticalDirection: VerticalDirection.down,
+                          //     children: [
+                          //       Column(
+                          //           verticalDirection: VerticalDirection.down,
+                          //           children: [
+                          //             Text(
+                          //               "Schritt ${x + 1}: ",
+                          //               style: TextStyle(color: Colors.white),
+                          //             ),
+                          //           ]),
+                          //       Column(
+                          //           mainAxisAlignment: MainAxisAlignment.center,
+                          //           children: [
+                          //             Container(
+                          //               width: mediaQuery.size.width * 0.7,
+                          //               height: mediaQuery.size.width * 0.7,
+                          //               child: Text(
+                          //                 wholeRecipe.recipeManualSteps[x].step,
+                          //                 style: TextStyle(color: Colors.white),
+                          //               ),
+                          //             )
+                          //           ])
+                          //     ],
+                          //   ))
+                          // ]));
+                          );
                       // ]));
                     }
                   }
@@ -271,7 +314,7 @@ class ShowRecipeState extends State<ShowRecipe> {
                         ],
                         rows: generalInformation),
                     DataTable(
-                        dataRowHeight: 60,
+                        dataRowHeight: 30,
                         columns: const <DataColumn>[
                           DataColumn(
                             label: Expanded(
@@ -290,19 +333,38 @@ class ShowRecipeState extends State<ShowRecipe> {
                           ),
                         ],
                         rows: ingredients),
-                    DataTable(
-                        dataRowHeight: 60,
-                        columns: const <DataColumn>[
-                          DataColumn(
-                            label: Expanded(
-                              child: Text(
-                                'Schritte',
-                                style: TextStyle(fontStyle: FontStyle.italic),
-                              ),
-                            ),
-                          ),
-                        ],
-                        rows: manualSteps),
+
+                    // Container(
+                    //     width: mediaQuery.size.width * 0.5,
+                    //     child: DataTable(
+                    //         dataRowHeight: 60,
+                    //         columns: const <DataColumn>[
+                    //           DataColumn(
+                    //             // SizedBox(
+                    //             // width: mediaQuery.size.width * 1,
+                    //             // child: manualSteps,
+                    //             // ),
+                    //             label: Text(
+                    //               'Schritte',
+                    //               style: TextStyle(fontStyle: FontStyle.italic),
+                    //             ),
+                    //           ),
+                    //         ],
+                    //         rows: manualSteps)),
+                    // DataTable(
+                    //     dataRowHeight: 60,
+                    //     columns: const <DataColumn>[
+                    //       DataColumn(
+                    //         label: Expanded(
+                    //           child: Text(
+                    //             'Schritte',
+                    //             style: TextStyle(fontStyle: FontStyle.italic),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //     rows: manualSteps),
+                    ...manualSteps
                   ])));
             }));
   }
@@ -325,8 +387,7 @@ class ShowRecipeState extends State<ShowRecipe> {
               wholeRecipe.amount.forEach((element) {
                 print(element.amount);
                 element.amount = (element.amount *
-                        (int.parse(value!) / int.parse(dropdownValue)))
-                    .floor();
+                    (int.parse(value!) / int.parse(dropdownValue))) as double;
               });
               dropdownValue = value!.toString();
             });
