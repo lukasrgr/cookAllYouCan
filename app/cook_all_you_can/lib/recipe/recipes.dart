@@ -225,22 +225,15 @@ class _State extends State<Homescreen> {
                             });
                           },
                           title: Column(
-                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Expanded(
-                                    // child:
-                                    // Row(children: [
                                     Text(recipe.name,
                                         style: TextStyle(
                                             fontSize: 18,
                                             color: primaryColor,
                                             overflow: TextOverflow.clip)),
-                                    // ]
-                                    // )
-                                    // ),
 
                                     /// TODO implement rating
                                     // Row(
@@ -263,20 +256,6 @@ class _State extends State<Homescreen> {
                                       ],
                                     )
                                   ]),
-                              // Column(
-                              //   crossAxisAlignment: CrossAxisAlignment.end,
-                              //   mainAxisAlignment: MainAxisAlignment.end,
-                              //   children: [
-                              //     IconButton(
-                              //       icon: const Icon(
-                              //         Icons.highlight_remove_outlined,
-                              //       ),
-                              //       tooltip: 'remove recipe',
-
-                              //       color: Colors.red[300],
-                              //     )
-                              //   ],
-                              // ),
                             ],
                           ),
                           // subtitle: Text('Beschreibung'),
@@ -320,8 +299,8 @@ class _State extends State<Homescreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.food_bank_outlined),
+            label: 'Rezepte',
           ),
           BottomNavigationBarItem(
               icon: Icon(Icons.list), label: 'Einkaufsliste'),
@@ -343,27 +322,4 @@ class _State extends State<Homescreen> {
     });
     buildViews2();
   }
-
-  // _showMyDialog() async {
-  //   return TextButton(
-  //     onPressed: () => showDialog<String>(
-  //       context: context,
-  //       builder: (BuildContext context) => AlertDialog(
-  //         title: const Text('AlertDialog Title'),
-  //         content: const Text('AlertDialog description'),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context, 'Cancel'),
-  //             child: const Text('Cancel'),
-  //           ),
-  //           TextButton(
-  //             onPressed: () => Navigator.pop(context, 'OK'),
-  //             child: const Text('OK'),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //     child: const Text('Show Dialog'),
-  //   );
-  // }
 }

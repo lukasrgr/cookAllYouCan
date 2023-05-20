@@ -551,11 +551,14 @@ class ShoppingListItem {
   double amount;
   String unit;
   String date;
-  String? recipe_name; // RecipeAmount amount;
+  List<String>? recipe_name;
+  List<int>? id;
+  String? status; // RecipeAmount amount;
   ShoppingListItem(this.shopping_list_from_recipes_id, this.name, this.amount,
-      this.unit, this.date);
+      this.unit, this.date,
+      [this.id, this.status, this.recipe_name]);
 
-  setRecipeName(String recipeName) {
-    this.recipe_name = recipeName;
-  }
+  // setRecipeName(String recipeName) {
+  //   this.recipe_name.add(recipeName);
+  // }
 }
