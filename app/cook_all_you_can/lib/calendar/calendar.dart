@@ -434,7 +434,7 @@ class _CalendarState extends State<Calendar> {
             .select('id')
             .then((value) async {
               shopping_list_from_recipes_id = value[0]['id'];
-              List<ShoppingListItem> list = [];
+              List<ShoppingListItemFromRecipe> list = [];
               Map<int, String> recipeItems2 = new Map();
               await supabase
                   .from(RecipeItemTable().TABLENAME)
@@ -449,7 +449,7 @@ class _CalendarState extends State<Calendar> {
                     .select('amount,unit,recipe_item_id')
                     .match({'recipe_id': recipeId}).then((recipeAmounts) {
                   for (var x = 0; x < recipeAmounts.length; x++) {
-                    list.add(new ShoppingListItem(
+                    list.add(new ShoppingListItemFromRecipe(
                         shopping_list_from_recipes_id,
                         recipeItems2[recipeAmounts[x]['recipe_item_id']]!,
                         recipeAmounts[x]['amount'] is int
@@ -545,7 +545,7 @@ class _CalendarState extends State<Calendar> {
   }
 }
 
-class ShoppingListItem {
+class ShoppingListItemFromRecipe {
   int shopping_list_from_recipes_id;
   String name;
   double amount;
@@ -554,11 +554,16 @@ class ShoppingListItem {
   List<String>? recipe_name;
   List<int>? id;
   String? status; // RecipeAmount amount;
-  ShoppingListItem(this.shopping_list_from_recipes_id, this.name, this.amount,
-      this.unit, this.date,
+  ShoppingListItemFromRecipe(this.shopping_list_from_recipes_id, this.name,
+      this.amount, this.unit, this.date,
       [this.id, this.status, this.recipe_name]);
+}
 
-  // setRecipeName(String recipeName) {
-  //   this.recipe_name.add(recipeName);
-  // }
+class ShoppingListItemFromGeneral {
+  int id;
+  String name;
+  String description;
+  String status; // RecipeAmount amount;
+  ShoppingListItemFromGeneral(
+      this.id, this.name, this.description, this.status);
 }

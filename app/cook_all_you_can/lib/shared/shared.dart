@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../recipe/recipes.dart';
+import '../recipe/showRecipe.dart';
 import 'database/table.dart';
 
 const primaryColor = Color(0xFF81C784);
@@ -73,6 +74,25 @@ Widget buildUnitDropdownMenu(BuildContext context, dynamic dropdownValue,
         }).toList(),
       ));
 }
+
+/* @deprecated */
+WholeRecipeContent dummyWholeRecipe = new WholeRecipeContent(
+    new Recipe("", 0, 0, 0, 0), [], new RecipeManual(0, 0), [], []);
+
+List<String> unitsForIngredient = <String>[
+  'g',
+  'ml',
+  'Stück',
+  'Prise',
+  'TL',
+  'EL',
+  'Dose',
+  'Msp',
+  'Packung',
+  'Scheibe',
+  'Buendel'
+];
+List<String> defaultUnit = ['g'];
 
 confirmRemovePopUp(BuildContext context) async {
   var future;

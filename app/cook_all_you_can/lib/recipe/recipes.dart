@@ -32,7 +32,6 @@ class RecipeItem {
   String name;
   int recipe_id;
   int id;
-  // RecipeAmount amount;
   RecipeItem(this.name, this.recipe_id, this.id);
 }
 
@@ -69,7 +68,7 @@ class _State extends State<Homescreen> {
   TextEditingController generalController = TextEditingController();
 
   List<Recipe> recipes = [];
-  int _selectedIndex = 1;
+  int _selectedIndex = 0;
   var recipes2;
   final supabase = Supabase.instance.client;
 
@@ -192,7 +191,7 @@ class _State extends State<Homescreen> {
                     Navigator.of(context)
                         .push(
                           MaterialPageRoute(
-                            builder: (context) => RecipePopUp(""),
+                            builder: (context) => RecipePopUp(dummyWholeRecipe),
                           ),
                         )
                         .whenComplete(() => {this.updateRecipes()});

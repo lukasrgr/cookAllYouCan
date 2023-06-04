@@ -1,8 +1,10 @@
+import 'package:cook_all_you_can/recipe/create/createRecipe.dart';
 import 'package:cook_all_you_can/recipe/recipes.dart';
 import 'package:cook_all_you_can/shared/database/table.dart';
 import 'package:cook_all_you_can/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mysql_client/mysql_protocol.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WholeRecipeContent {
@@ -37,7 +39,9 @@ class _RecipePopUpState extends State<RecipePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(this.recipe_name),
+          title: Row(children: [
+            Text(this.recipe_name),
+          ]),
           backgroundColor: Colors.green[300],
         ),
         body: ShowRecipe(recipe_name));
@@ -304,6 +308,16 @@ class ShowRecipeState extends State<ShowRecipe> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => RecipePopUp(wholeRecipe),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.edit),
+                    ),
                     DataTable(
                         headingRowHeight: 0,
                         dividerThickness: 0.0,

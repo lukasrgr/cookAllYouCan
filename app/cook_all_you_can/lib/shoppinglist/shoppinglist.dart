@@ -22,17 +22,27 @@ class ShoppingList extends StatefulWidget {
 class _ShoppingListState extends State<ShoppingList> {
   final supabase = Supabase.instance.client;
   String dropdownValue = 'Woche';
-  late Future<List<ShoppingListItem>> shoppingList =
-      getShoppingListForSelectedRange();
+  late Future<List<ShoppingListItemFromRecipe>> shoppingList =
+      getShoppingListFromRecipesForSelectedRange();
+
+  late Future<List<ShoppingListItemFromGeneral>> generalShoppingList =
+      getGeneralShoppingList();
   List<String> list = <String>['Woche'];
   Map<List<int>, Map<String, String>> isChecked = new Map();
-  String? firstDayOfWeek;
-  String? lastDayOfWeek;
+  Map<int, Map<String, String>> isGeneralShoppingListChecked = new Map();
+  late String firstDayOfWeek;
+  late String lastDayOfWeek;
   bool showAdditionalInfo = false;
   final _formKey = GlobalKey<FormState>();
+  final _generalShoppingListformKey = GlobalKey<FormState>();
+  List<TextEditingController> generalController =
+      List.generate(1, (i) => TextEditingController());
+
+  ScrollController test = new ScrollController();
 
   @override
   void initState() {
+    // TODO: datepicker
     final today = DateTime.now();
     firstDayOfWeek = DateFormat('yyyy-MM-dd')
         .format(today.subtract(Duration(days: today.weekday - 1)));
@@ -42,9 +52,10 @@ class _ShoppingListState extends State<ShoppingList> {
     super.initState();
   }
 
-  Future<List<ShoppingListItem>> getShoppingListForSelectedRange() async {
-    List<ShoppingListItem> result = [];
-    List<ShoppingListItem> shoppinglist = [];
+  Future<List<ShoppingListItemFromRecipe>>
+      getShoppingListFromRecipesForSelectedRange() async {
+    List<ShoppingListItemFromRecipe> result = [];
+    List<ShoppingListItemFromRecipe> shoppinglist = [];
 
     await supabase
         .from(ShoppingListItems().TABLENAME)
@@ -54,7 +65,7 @@ class _ShoppingListState extends State<ShoppingList> {
         .lte('date', lastDayOfWeek)
         .then((value) async {
       for (var val in value) {
-        shoppinglist.add(new ShoppingListItem(
+        shoppinglist.add(new ShoppingListItemFromRecipe(
             val['shopping_list_from_recipes_id'],
             val['name'],
             val['amount'] is int
@@ -82,7 +93,7 @@ class _ShoppingListState extends State<ShoppingList> {
               element.name.toLowerCase() == item.name.toLowerCase() &&
               element.unit == item.unit);
           var product = [item, result[index]].reduce((value, element) {
-            return new ShoppingListItem(
+            return new ShoppingListItemFromRecipe(
                 element.shopping_list_from_recipes_id,
                 element.name,
                 element.amount + value.amount,
@@ -101,9 +112,11 @@ class _ShoppingListState extends State<ShoppingList> {
       }
     });
 
-    // TODO sorting settings
+    // TODO sorting settings,and move into utils
     result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return Future.value(result);
+    result.sort(
+        (a, b) => b.status!.toLowerCase().compareTo(a.status!.toLowerCase()));
+    return Future.delayed(Duration(milliseconds: 100), () => result);
   }
 
   @override
@@ -125,7 +138,7 @@ class _ShoppingListState extends State<ShoppingList> {
                 // This is called when the user selects an item.
                 setState(() {
                   dropdownValue = value!.toString();
-                  shoppingList = getShoppingListForSelectedRange();
+                  shoppingList = getShoppingListFromRecipesForSelectedRange();
                 });
               },
               items: list.map((String value) {
@@ -153,10 +166,13 @@ class _ShoppingListState extends State<ShoppingList> {
               setState(() {
                 var snackbar =
                     showNotification(context, "Liste wird aktualisiert");
-                this.shoppingList =
-                    getShoppingListForSelectedRange().then((value) {
-                  snackbar.close();
-                  return value;
+
+                this.shoppingList = getShoppingListFromRecipesForSelectedRange()
+                    .whenComplete(() {
+                  this.generalShoppingList =
+                      getGeneralShoppingList().whenComplete(() {
+                    snackbar.close();
+                  });
                 });
               });
             },
@@ -167,126 +183,262 @@ class _ShoppingListState extends State<ShoppingList> {
           )
         ])
       ]),
+
       Expanded(
           child: SingleChildScrollView(
+              controller: test,
               child: Column(children: [
-        /// Dropdown
+                FutureBuilder<List<ShoppingListItemFromRecipe>>(
+                    future: shoppingList,
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<ShoppingListItemFromRecipe>>
+                            snapshot) {
+                      List<Widget> children = [];
 
-        FutureBuilder<List<ShoppingListItem>>(
-            future: shoppingList,
-            builder: (BuildContext context,
-                AsyncSnapshot<List<ShoppingListItem>> snapshot) {
-              List<Widget> children = [];
-
-              if (!snapshot.hasData) {
-                return Center(
-                    child: Column(children: [
-                  Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator())
-                ]));
-              }
-
-              if (snapshot.hasData) {
-                if (snapshot.requireData.isEmpty) {
-                  //TODO center
-                  return Text(
-                    "Es wurden keine Rezepte für diesen Zeitraum angelegt oder der Einkauf ist abgeschlossen.",
-                    style: TextStyle(
-                      color: primaryColor,
-                    ),
-                  );
-                }
-                for (var data in snapshot.requireData) {
-                  children.add(CheckboxListTile(
-                    title: Wrap(alignment: WrapAlignment.spaceBetween,
-                        // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [Text(data.name)],
-                          ),
-                          Column(
-                            children: [
-                              Text(data.amount.toStringAsFixed(2) +
-                                  " " +
-                                  data.unit)
-                            ],
-                          ),
-                        ]),
-                    value: stateOfElement(data.name),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    subtitle: showAdditionalInfo
-                        ? Text(data.recipe_name?.join(",") ?? data.date)
-                        : null,
-                    checkColor: primaryColor,
-                    activeColor: Colors.transparent,
-
-                    onChanged: (bool? value) {
-                      if (value == true) {
-                        setState(() {
-                          if (data.id != null) {
-                            isChecked[data.id!] = {data.name: 'done'};
-                          }
-                        });
-                      } else {
-                        setState(() {
-                          isChecked[data.id!] = {data.name: 'undone'};
-                        });
+                      if (!snapshot.hasData) {
+                        return Center(
+                            child: Column(children: [
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: CircularProgressIndicator())
+                        ]));
                       }
 
-                      var snackbar =
-                          showNotification(context, "Liste wird upgedated");
-                      updateShoppingListItem(
-                              value == true ? 'done' : 'undone', data.id!)
-                          .then((value) => {snackbar.close(), value});
-                    },
+                      if (snapshot.hasData) {
+                        if (snapshot.requireData.isEmpty) {
+                          //TODO center
+                          return Text(
+                            "Es wurden keine Rezepte für diesen Zeitraum angelegt oder der Einkauf ist abgeschlossen.",
+                            style: TextStyle(
+                              color: primaryColor,
+                            ),
+                          );
+                        }
 
-                    /// TODO: categorys
-                    secondary: const Icon(Icons.hourglass_empty),
-                  ));
-                }
-              }
+                        children.add(Text(
+                          "Einkaufsliste aus Rezepten",
+                          style: TextStyle(fontSize: 20, color: primaryColor),
+                        ));
+                        for (var data in snapshot.requireData) {
+                          children.add(CheckboxListTile(
+                            title: Wrap(alignment: WrapAlignment.spaceBetween,
+                                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: [Text(data.name)],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Text(data.amount.toStringAsFixed(2) +
+                                          " " +
+                                          data.unit)
+                                    ],
+                                  ),
+                                ]),
+                            value: stateOfElement(data.name, isChecked),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            subtitle: showAdditionalInfo
+                                ? Text(data.recipe_name?.join(",") ?? data.date)
+                                : null,
+                            checkColor: primaryColor,
+                            activeColor: Colors.transparent,
 
-              return Form(key: _formKey, child: Column(children: children));
-            }),
-        // FutureBuilder<List<ShoppingListItem>>(
-        //     future: shoppingList,
-        //     builder: (BuildContext context,
-        //         AsyncSnapshot<List<ShoppingListItem>> snapshot) {
+                            onChanged: (bool? value) {
+                              if (value == true) {
+                                setState(() {
+                                  if (data.id != null) {
+                                    isChecked[data.id!] = {data.name: 'done'};
+                                  }
+                                });
+                              } else {
+                                setState(() {
+                                  isChecked[data.id!] = {data.name: 'undone'};
+                                });
+                              }
 
-        //       List<Widget> children = [];
+                              var snackbar = showNotification(
+                                  context, "Liste wird upgedated");
+                              updateShoppingListItem(
+                                      value == true ? 'done' : 'undone',
+                                      data.id!)
+                                  .then((value) => {snackbar.close(), value});
+                            },
 
-        //       // children.add()
-        //       return Form(key: _formKey, child: Column(children: children));
-        //     })
-      ]))),
+                            /// TODO: categorys
+                            // secondary: const Icon(Icons.hourglass_empty),
+                          ));
+                        }
+                      }
+
+                      return Form(
+                          key: _formKey, child: Column(children: children));
+                    }),
+                FutureBuilder<List<ShoppingListItemFromGeneral>>(
+                    future: generalShoppingList,
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<ShoppingListItemFromGeneral>>
+                            snapshot) {
+                      List<Widget> children = [
+                        Column(children: [
+                          Divider(color: Colors.white),
+                          Text(
+                            "Allgemeine Einkaufsliste",
+                            style: TextStyle(fontSize: 20, color: primaryColor),
+                          ),
+                        ])
+                      ];
+
+                      if (!snapshot.hasData) {
+                        return Center(
+                            child: Column(children: [
+                          Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: CircularProgressIndicator())
+                        ]));
+                      }
+
+                      if (snapshot.hasData) {
+                        if (snapshot.requireData.isEmpty) {
+                          //TODO center
+                          children.add(Text(
+                            "Es wurden keine Items auf die Einkaufsliste für diesen Zeitraum geschrieben.",
+                            style: TextStyle(
+                              color: primaryColor,
+                            ),
+                          ));
+                        }
+
+                        for (var data in snapshot.requireData) {
+                          children.add(CheckboxListTile(
+                              title: Wrap(alignment: WrapAlignment.spaceBetween,
+                                  // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      children: [Text(data.name)],
+                                    ),
+                                  ]),
+                              value: stateOfElement(
+                                  data.name, isGeneralShoppingListChecked),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              checkColor: primaryColor,
+                              activeColor: Colors.transparent,
+                              onChanged: (bool? value) {
+                                if (value == true) {
+                                  setState(() {
+                                    isGeneralShoppingListChecked[data.id] = {
+                                      data.name: 'done'
+                                    };
+                                  });
+                                } else {
+                                  setState(() {
+                                    isGeneralShoppingListChecked[data.id] = {
+                                      data.name: 'undone'
+                                    };
+                                  });
+                                }
+
+                                // TODO: cleanup
+                                updateGeneralShoppingListItem(data.id);
+                              }));
+                        }
+
+                        for (var x = 0; x < generalController.length; x++) {
+                          children.add(Row(
+                            children: <Widget>[
+                              IconButton(
+                                onPressed: () => setState(
+                                    () => {generalController.removeAt(x)}),
+                                icon:
+                                    const Icon(Icons.playlist_remove_outlined),
+                              ),
+                              Flexible(
+                                  child: TextFormField(
+                                      controller: generalController[x],
+                                      decoration: const InputDecoration(
+                                          border: OutlineInputBorder(),
+                                          labelText: 'Item',
+                                          isDense: true),
+                                      validator: (value) =>
+                                          validateTextForm(value))),
+                            ],
+                          ));
+                        }
+                      }
+                      children.add(
+                        Row(children: <Widget>[
+                          Expanded(
+                              flex: 0,
+                              child: Align(
+                                alignment: Alignment.bottomLeft,
+                                child: IconButton(
+                                  onPressed: () => setState(() {
+                                    generalController
+                                        .add(TextEditingController());
+                                    test.animateTo(
+                                        test.position.maxScrollExtent,
+                                        curve: Curves.easeOut,
+                                        duration: Duration(seconds: 1));
+                                  }),
+                                  icon: const Icon(Icons.playlist_add_outlined,
+                                      size: 24),
+                                ),
+                              )),
+                          Expanded(
+                              child: Align(
+                            alignment: Alignment.bottomRight,
+                            child: IconButton(
+                              onPressed: () {
+                                if (_generalShoppingListformKey.currentState!
+                                    .validate()) {
+                                  var snackbar = showNotification(context,
+                                      "Allgemeine Einkaufsliste wird upgedated");
+
+                                  submitGeneralShoppingList()
+                                      .whenComplete(() => snackbar.close());
+                                }
+                              },
+                              icon: const Icon(Icons.send),
+                            ),
+                          )),
+                        ]),
+                      );
+                      ;
+
+                      return Form(
+                          key: _generalShoppingListformKey,
+                          child: Column(children: children));
+                    })
+              ]))),
 
       /// Show Confirmation Button when changes were made
     ]);
   }
 
   Future<void> updateShoppingListItem(String status, List<int> ids) async {
+    final some = await shoppingList;
     ids.forEach((id) async {
       await supabase
           .from(ShoppingListItems().TABLENAME)
           .update({"status": status}) //
           .match({"id": id})
           .select("id") //
-          .whenComplete(() => {});
+          .whenComplete(() async {});
     });
 
     return Future.delayed(Duration(milliseconds: 50));
   }
 
 /**
- * Checks State of SHoppingListItem
+ * Checks State of ShoppingListItem
  * 
  * @returns the state of a shoppingListItem
  */
-  bool stateOfElement(String name) {
+  bool stateOfElement(String name, Map<dynamic, Map<String, String>> map) {
     bool returnValue = false;
-    isChecked.values.forEach((maps) {
+
+    map.values.forEach((maps) {
       maps.forEach((key, value) {
         if (key == name) {
           switch (value) {
@@ -300,7 +452,75 @@ class _ShoppingListState extends State<ShoppingList> {
         }
       });
     });
-
     return returnValue;
+  }
+
+  Future<List<ShoppingListItemFromGeneral>> getGeneralShoppingList() async {
+    List<ShoppingListItemFromGeneral> list = [];
+    await supabase
+        .from(GeneralShoppingList().TABLENAME)
+        .select('id,name,description,status')
+        .then((value) => {
+              value.forEach((element) {
+                isGeneralShoppingListChecked[element['id']] = {
+                  element['name']: element['status']
+                };
+                // ].putIfAbsent(
+                //     element['id'], () => {element['name']: element['status']});
+                list.add(new ShoppingListItemFromGeneral(
+                    element['id'],
+                    element['name'],
+                    element['description'],
+                    element['status']));
+              }),
+            })
+        .whenComplete(() => list.sort(
+            (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())));
+    return Future.value(list);
+  }
+
+  Future<void> submitGeneralShoppingList() async {
+    generalController.forEach((element) async {
+      await supabase
+          .from(GeneralShoppingList().TABLENAME)
+          .insert({
+            "name": element.text,
+            "description": "",
+          })
+          .select('id')
+          .whenComplete(() {
+            setState(() {
+              generalController
+                  .firstWhere((ctrl) => ctrl.text == element.text)
+                  .clear();
+              generalShoppingList = getGeneralShoppingList().whenComplete(() {
+                test.animateTo(test.position.maxScrollExtent,
+                    curve: Curves.easeOut, duration: Duration(seconds: 1));
+              });
+            });
+          });
+    });
+  }
+
+  Future<void> updateGeneralShoppingListItem(int id) async {
+    await supabase
+        .from(GeneralShoppingList().TABLENAME)
+        .delete()
+        .match({"id": id})
+        .select("id")
+        .whenComplete(
+            () => this.generalShoppingList = getGeneralShoppingList());
+    return Future.delayed(Duration(milliseconds: 50));
+  }
+}
+
+class GeneralShoppingList extends DatabaseTable {
+  @override
+  String TABLENAME = "general_shopping_list";
+
+  @override
+  toJson(argument1, argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
   }
 }
