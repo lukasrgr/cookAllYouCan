@@ -158,11 +158,11 @@ class ShowRecipeState extends State<ShowRecipe> {
 
         await supabase
             .from("recipe_manual_steps")
-            .select("step")
+            .select("step,id")
             .match({'manual_id': recipe_manual_id}).then((map) {
           for (var i = 0; i < map.length; i++) {
-            recipeManualSteps
-                .add(new RecipeManualStep(recipe_manual_id, map[i]['step']));
+            recipeManualSteps.add(new RecipeManualStep(
+                map[i]['id'], recipe_manual_id, map[i]['step']));
           }
         }).whenComplete(() => {
                   setState(() {

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import 'package:cook_all_you_can/recipe/recipes.dart';
+import 'package:cook_all_you_can/settings/settings.dart';
 import 'package:cook_all_you_can/shoppinglist/shoppinglist.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
       routes: {
         // '/': (context) => Homescreen(),
         '/details': (context) => const ShoppingList(),
+        '/settings': ((context) => const Settings())
       },
     );
   }

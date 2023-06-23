@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cook_all_you_can/button.dart';
 import 'package:cook_all_you_can/calendar/calendar.dart';
 import 'package:cook_all_you_can/recipe/showRecipe.dart';
+import 'package:cook_all_you_can/settings/settings.dart';
 import 'package:cook_all_you_can/shared/shared.dart';
 import 'package:cook_all_you_can/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';
@@ -50,9 +51,10 @@ class RecipeManual {
 }
 
 class RecipeManualStep {
+  int id;
   int manual_id;
   String step;
-  RecipeManualStep(this.manual_id, this.step);
+  RecipeManualStep(this.id, this.manual_id, this.step);
 }
 
 class Homescreen extends StatefulWidget {
@@ -291,7 +293,40 @@ class _State extends State<Homescreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Cook all you can'),
+        title: Row(children: [
+          Text('Cook all you can'),
+          Spacer(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: () {
+                  var snackbar =
+                      showNotification(context, "Not implemented", Colors.grey);
+                  // Navigator.of(context).push(
+                  //   MaterialPageRoute(
+                  //     builder: (context) => Settings(),
+                  //   ),
+                  // );
+                },
+                icon: const Icon(Icons.settings, color: Colors.black),
+              ),
+            ],
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: () {
+                  var snackbar =
+                      showNotification(context, "Not implemented", Colors.grey);
+                },
+                icon:
+                    const Icon(Icons.account_circle_sharp, color: Colors.black),
+              ),
+            ],
+          ),
+        ]),
         backgroundColor: primaryColor,
       ),
       body: buildViews2(),

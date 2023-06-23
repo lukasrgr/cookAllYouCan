@@ -26,11 +26,12 @@ String? validateTextForm(String? value) {
 }
 
 ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
-    BuildContext context, String message) {
+    BuildContext context, String message,
+    [Color? bgcolor]) {
   late AnimationController controller;
   return ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      backgroundColor: primaryColor,
+      backgroundColor: bgcolor ?? primaryColor,
       content: Row(
         children: [
           Text(message,

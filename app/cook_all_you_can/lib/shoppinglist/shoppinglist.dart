@@ -145,21 +145,14 @@ class _ShoppingListState extends State<ShoppingList> {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(
-                      value + " " + firstDayOfWeek! + "-" + lastDayOfWeek!),
+                    value + " " + firstDayOfWeek! + "-" + lastDayOfWeek!,
+                    style: TextStyle(color: Colors.white),
+                  ),
                 );
               }).toList(),
             )
           ]),
       Row(children: [
-        Checkbox(
-            value: showAdditionalInfo,
-            onChanged: ((bool? value) {
-              setState(() {
-                showAdditionalInfo = value!;
-              });
-            })),
-        Text("Zeige zusätzliche Informationen"),
-        Spacer(),
         Column(mainAxisAlignment: MainAxisAlignment.end, children: [
           TextButton(
             onPressed: () {
@@ -204,21 +197,36 @@ class _ShoppingListState extends State<ShoppingList> {
                         ]));
                       }
 
+                      children.add(Text(
+                        "Einkaufsliste aus Rezepten",
+                        style: TextStyle(fontSize: 20, color: primaryColor),
+                      ));
+
                       if (snapshot.hasData) {
                         if (snapshot.requireData.isEmpty) {
-                          //TODO center
-                          return Text(
-                            "Es wurden keine Rezepte für diesen Zeitraum angelegt oder der Einkauf ist abgeschlossen.",
-                            style: TextStyle(
-                              color: primaryColor,
+                          children.add(Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Nichts eingetragen",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
+                              )));
+                        } else {
+                          children.add(Row(children: [
+                            Checkbox(
+                              value: showAdditionalInfo,
+                              onChanged: ((bool? value) {
+                                setState(() {
+                                  showAdditionalInfo = value!;
+                                });
+                              }),
+                              activeColor: Colors.transparent,
+                              checkColor: primaryColor,
                             ),
-                          );
+                            Text("Zeige zusätzliche Informationen"),
+                          ]));
                         }
 
-                        children.add(Text(
-                          "Einkaufsliste aus Rezepten",
-                          style: TextStyle(fontSize: 20, color: primaryColor),
-                        ));
                         for (var data in snapshot.requireData) {
                           children.add(CheckboxListTile(
                             title: Wrap(alignment: WrapAlignment.spaceBetween,
@@ -243,7 +251,6 @@ class _ShoppingListState extends State<ShoppingList> {
                                 : null,
                             checkColor: primaryColor,
                             activeColor: Colors.transparent,
-
                             onChanged: (bool? value) {
                               if (value == true) {
                                 setState(() {
@@ -264,9 +271,6 @@ class _ShoppingListState extends State<ShoppingList> {
                                       data.id!)
                                   .then((value) => {snackbar.close(), value});
                             },
-
-                            /// TODO: categorys
-                            // secondary: const Icon(Icons.hourglass_empty),
                           ));
                         }
                       }
@@ -301,12 +305,13 @@ class _ShoppingListState extends State<ShoppingList> {
                       if (snapshot.hasData) {
                         if (snapshot.requireData.isEmpty) {
                           //TODO center
-                          children.add(Text(
-                            "Es wurden keine Items auf die Einkaufsliste für diesen Zeitraum geschrieben.",
-                            style: TextStyle(
-                              color: primaryColor,
-                            ),
-                          ));
+                          children.add(Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                "Nichts eingetragen",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.white),
+                              )));
                         }
 
                         for (var data in snapshot.requireData) {

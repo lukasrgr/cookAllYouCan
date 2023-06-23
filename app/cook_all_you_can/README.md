@@ -26,6 +26,7 @@ samples, guidance on mobile development, and a full API reference.
     - refresh possibility
     - Change queries to GraphiQL
     - adjust selectedDayColor in calendar
+    - Custom Datepicker for shoppinglist -> default currentWeek
     - editRecipe
-
-
+    - expandable for shoppinglist[s]
+    - zutaten alle in eine liste und automatische Trennung

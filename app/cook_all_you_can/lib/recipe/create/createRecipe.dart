@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:html';
 import 'dart:io';
 
 import 'package:cook_all_you_can/recipe/recipes.dart';
@@ -43,6 +42,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
 
   Map<String, List<Map<int, dynamic>>> changedValues = new Map();
 
+  var changedWholeRecipe;
+
   // TODO Datamodel
   // List<String> importanceList = <String>['Essentiell', 'Optional'];
   // List<String> importanceDropdownValue = ['Essentiell'];
@@ -75,13 +76,18 @@ class _RecipePopUpState extends State<RecipePopUp> {
       numberOfPeopleDropdownValue =
           wholeRecipe.recipe.number_of_people.toString();
 
-      for (var x = 0; x < wholeRecipe.recipeItem.length; x++) {
-        addIngredient(wholeRecipe, x);
+      for (var recipe_item_id in wholeRecipe.recipeItem.asMap().keys) {
+        addIngredient(
+            wholeRecipe,
+            wholeRecipe.recipeItem
+                .firstWhere((element) => element.id == recipe_item_id)
+                .id);
       }
 
-      for (var x = 0; x < wholeRecipe.recipeManualSteps.length; x++) {
+      for (var manual_step_id in wholeRecipe.recipeManualSteps.asMap().keys) {
         manualStepsController.add(TextEditingController());
-        manualStepsController[x].text = wholeRecipe.recipeManualSteps[x].step;
+        manualStepsController[manual_step_id].text =
+            wholeRecipe.recipeManualSteps[manual_step_id].step;
         // manualStepsController[x].addListener(
         //     _listener(manualStepsController[x], x, "recipe_manual_steps"));
       }
@@ -126,85 +132,6 @@ class _RecipePopUpState extends State<RecipePopUp> {
     } else if (isInsertOrUpdate == 'insert') {
       return insertNewRecipe();
     }
-
-    /// RecipeTable
-    // await supabase
-    //     .from(RecipeTable().TABLENAME)
-    //     .insert({
-    //       "name": generalController[0]?.text ?? "----",
-    //       "prep_time": generalController[1]?.text ?? 0,
-    //       'number_of_people': numberOfPeopleDropdownValue
-    //     })
-    //     .select('id')
-    //     .onError((error, stackTrace) => print("no data"))
-    //     .then((value) async {
-    //       recipe_id = value[0]['id'];
-
-    //       Map<int, Map<String, dynamic>> updateIngredients = new Map();
-    //       for (var i = 0; i < ingredients.length; i++) {
-    //         var ingredient = ingredientController[i].text;
-    //         updateIngredients[i] = {
-    //           'name': ingredient,
-    //           'recipe_id': recipe_id,
-    //           // 'importance': importanceDropdownValue[i]
-    //         };
-    //       }
-
-    //       /// RecipeItemTable
-    //       await supabase
-    //           .from(RecipeItemTable().TABLENAME)
-    //           .insert(updateIngredients.values.toList())
-    //           .select('id, name')
-    //           .onError((error, stackTrace) => print("no data"))
-    //           .then((map) async {
-    //         ///
-    //         Map<int, Map<String, dynamic>> updateIngredientAmount = new Map();
-    //         for (var i = 0; i < map.length; i++) {
-    //           var recipe_item_id = map[i]['id'];
-    //           var amount = amountController[i].text;
-    //           updateIngredientAmount[i] = {
-    //             'recipe_item_id': recipe_item_id,
-    //             'recipe_id': recipe_id,
-    //             'amount': amount.replaceAll(',', '.'),
-    //             'unit': defaultUnit[i]
-    //           };
-    //         }
-
-    //         await supabase
-    //             .from(AmountTable().TABLENAME)
-    //             .insert(updateIngredientAmount.values.toList())
-    //             .whenComplete(() async {
-    //           await supabase
-    //               .from("recipe_manual")
-    //               .insert({
-    //                 'recipe_id': recipe_id,
-    //                 'steps': manualStepsController.length
-    //               })
-    //               .select('id')
-    //               .then((value) async {
-    //                 var recipe_manual_id = value[0]['id'];
-
-    //                 Map<int, Map<String, dynamic>> updateSteps = new Map();
-    //                 for (var i = 0; i < manualStepsController.length; i++) {
-    //                   var step = manualStepsController[i].text;
-    //                   print('step ${step}');
-    //                   updateSteps[i] = {
-    //                     'manual_id': recipe_manual_id,
-    //                     'step': step
-    //                   };
-    //                 }
-    //                 await supabase
-    //                     .from("recipe_manual_steps")
-    //                     .insert(updateSteps.values.toList())
-    //                     .select('id')
-    //                     .whenComplete(() {
-    //                   Navigator.of(context).pop();
-    //                   return new Future.value();
-    //                 });
-    //               });
-    //         });
-    //       });
-    //     });
   }
 
   /// Move to utils-class
@@ -247,6 +174,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
                       children: [
                         TextFormField(
                             controller: generalController[0],
+                            onChanged: _listener(generalController[0], 0,
+                                RecipeTable().TABLENAME),
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Name',
@@ -254,6 +183,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
                             validator: (value) => validateTextForm(value)),
                         TextFormField(
                             controller: generalController[1],
+                            onChanged: _listener(generalController[1], 1,
+                                RecipeTable().TABLENAME),
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'Vorbereitungszeit [min]',
@@ -293,6 +224,10 @@ class _RecipePopUpState extends State<RecipePopUp> {
                               Flexible(
                                   child: TextFormField(
                                       controller: ingredientController[x],
+                                      onChanged: _listener(
+                                          ingredientController[x],
+                                          x,
+                                          RecipeItemTable().TABLENAME),
                                       decoration: const InputDecoration(
                                           border: OutlineInputBorder(),
                                           labelText: 'Zutat',
@@ -307,6 +242,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
                                 flex: 2,
                                 child: TextFormField(
                                     controller: amountController[x],
+                                    onChanged: _listener(amountController[x], x,
+                                        AmountTable().TABLENAME),
                                     decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
                                         labelText: 'Menge',
@@ -365,15 +302,16 @@ class _RecipePopUpState extends State<RecipePopUp> {
                                 maxLines: null,
                                 validator: (value) => validateTextForm(value),
                                 onChanged: (value) {
-                                  debugger();
-                                  if (changedValues['recipe_manual_steps']
-                                          ?.isEmpty ??
-                                      true) {
-                                    changedValues['recipe_manual_steps'] = [];
-                                  }
-                                  changedValues['recipe_manual_steps']
-                                      ?.add({x: value});
-                                  inspect(changedValues);
+                                  _listener(manualStepsController[x], x,
+                                      "recipe_manual_steps");
+                                  // if (changedValues['recipe_manual_steps']
+                                  //         ?.isEmpty ??
+                                  //     true) {
+                                  //   changedValues['recipe_manual_steps'] = [];
+                                  // }
+                                  // manualStepsController[x].
+                                  // changedValues['recipe_manual_steps']
+                                  //     ?.add({x: value});
                                 },
                               )),
                             ],
@@ -456,21 +394,70 @@ class _RecipePopUpState extends State<RecipePopUp> {
 
     // importanceDropdownValue.add("Essentiell");
     ingredients.add(Ingredient("Zutat", "", ""));
-    // ingredientController[index]
-    //     .addListener(_listener(ingredientController[index]));
+    // ingredientController[index].addListener(_listener(
+    //     ingredientController[index], index, RecipeItemTable().TABLENAME));
     // amountController[index].addListener(
     //     _listener(amountController[index], index, AmountTable().TABLENAME));
   }
 
   _listener(TextEditingController controller, int index, String tableName) {
-    // changedValues.putIfAbsent(tableName, () => {index: controller.text});
+    changedValues[tableName] != null
+        ? changedValues[tableName]?.add({index: controller.text})
+        : changedValues[tableName] = [];
+  }
+
+  void generateChangedWholeRecipe() {
+    List<RecipeItem> recipeItems = [];
+    List<RecipeAmount> recipeAmount = [];
+    RecipeManual manual =
+        new RecipeManual(manualStepsController.length, wholeRecipe.recipe.id);
+    List<RecipeManualStep> manualSteps = [];
+
+    for (var recipe_item_id in ingredientController.asMap().keys) {
+      recipeItems.add(new RecipeItem(ingredientController[recipe_item_id].text,
+          wholeRecipe.recipe.id, recipe_item_id));
+      recipeAmount.add(new RecipeAmount(
+          recipe_item_id,
+          wholeRecipe.recipe.id,
+          amountController[recipe_item_id].text as double,
+          defaultUnit[recipe_item_id]));
+    }
+
+    for (var manual_id in manualStepsController.asMap().keys) {
+      manualSteps.add(new RecipeManualStep(
+          manual_id, manual_id, manualStepsController[manual_id].text));
+    }
+
+    // this.changedWholeRecipe = new WholeRecipeContent(
+    //   new Recipe(generalController[0].text,generalController[1].text,null,numberOfPeopleDropdownValue as int, wholeRecipe.recipe.id),
   }
 
   Future<void> updateExistingRecipe() async {
     int recipe_id = 0;
+    debugger();
 
-    inspect(changedValues);
-    return;
+    Map<String, List<Map<int, dynamic>>> changedValues2 = new Map();
+
+    /**
+     * Option 1: 
+     * - Delete ingredients and manualsteps
+     * - update recipe and manual
+     * 
+     * Option 2:
+     * update all
+     */
+
+    if (wholeRecipe.recipe.name != generalController[0].text) {
+      changedValues2[RecipeTable().TABLENAME] = [
+        {wholeRecipe.recipe.id: generalController[0].text}
+      ];
+    }
+
+    if (wholeRecipe.recipe.rating != generalController[0].text) {
+      changedValues2[RecipeTable().TABLENAME] = [
+        {wholeRecipe.recipe.id: generalController[0].text}
+      ];
+    }
 
     await supabase
         .from(RecipeTable().TABLENAME)
@@ -482,6 +469,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
         .select('id')
         .onError((error, stackTrace) => print("no data"))
         .then((value) async {
+          debugger();
           recipe_id = value[0]['id'];
 
           Map<int, Map<String, dynamic>> updateIngredients = new Map();
@@ -497,7 +485,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
           /// RecipeItemTable
           await supabase
               .from(RecipeItemTable().TABLENAME)
-              .insert(updateIngredients.values.toList())
+              .update(updateIngredients)
               .select('id, name')
               .onError((error, stackTrace) => print("no data"))
               .then((map) async {
@@ -516,11 +504,11 @@ class _RecipePopUpState extends State<RecipePopUp> {
 
             await supabase
                 .from(AmountTable().TABLENAME)
-                .insert(updateIngredientAmount.values.toList())
+                .update(updateIngredientAmount)
                 .whenComplete(() async {
               await supabase
                   .from("recipe_manual")
-                  .insert({
+                  .update({
                     'recipe_id': recipe_id,
                     'steps': manualStepsController.length
                   })
@@ -539,7 +527,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
                     }
                     await supabase
                         .from("recipe_manual_steps")
-                        .insert(updateSteps.values.toList())
+                        .update(updateSteps)
                         .select('id')
                         .whenComplete(() {
                       Navigator.of(context).pop();
