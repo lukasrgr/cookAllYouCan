@@ -44,6 +44,7 @@ dependencies:
   fluttertoast: ^8.2.1
   table_calendar: ^3.0.9
   checkbox_formfield: ^0.2.0
+  settings_ui: ^2.0.2
 
 dev_dependencies:
   flutter_test:
