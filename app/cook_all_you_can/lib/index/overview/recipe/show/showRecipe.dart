@@ -1,7 +1,10 @@
-import 'package:cook_all_you_can/recipe/create/createRecipe.dart';
-import 'package:cook_all_you_can/recipe/recipes.dart';
-import 'package:cook_all_you_can/shared/database/table.dart';
-import 'package:cook_all_you_can/shared/shared.dart';
+import 'dart:developer';
+
+import 'package:cook_all_you_can/index/overview/recipe/create/createRecipe.dart';
+import 'package:cook_all_you_can/index/overview/overview.dart';
+import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
+import 'package:cook_all_you_can/index/overview/shared/shared.dart';
+import 'package:cook_all_you_can/index/overview/shared/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql_client/mysql_protocol.dart';
@@ -38,13 +41,7 @@ class _RecipePopUpState extends State<RecipePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Row(children: [
-            Text(this.recipe_name),
-          ]),
-          backgroundColor: Colors.green[300],
-        ),
-        body: ShowRecipe(recipe_name));
+        appBar: getAppBar(context, recipe_name), body: ShowRecipe(recipe_name));
   }
 }
 
@@ -112,35 +109,38 @@ class ShowRecipeState extends State<ShowRecipe> {
           .from(RecipeItemTable().TABLENAME)
           .select('*')
           .match({'recipe_id': recipe_id})
+          .order('id', ascending: true)
 
           ///
           .then((map) async {
-        /// Iterate over array
-        // List<RecipeItem> ingredients = [];
-        for (var i = 0; i < map.length; i++) {
-          var recipe_item_id = map[i]['id'];
-          recipeItem
-              .add(new RecipeItem(map[i]['name'], recipe_id, recipe_item_id));
-        }
+            inspect(map);
 
-        await supabase
-            .from(AmountTable().TABLENAME)
-            .select('id, amount, recipe_item_id, unit')
-            .match({'recipe_id': recipe_id})
+            /// Iterate over array
+            // List<RecipeItem> ingredients = [];
+            for (var i = 0; i < map.length; i++) {
+              var recipe_item_id = map[i]['id'];
+              recipeItem.add(
+                  new RecipeItem(map[i]['name'], recipe_id, recipe_item_id));
+            }
 
-            ///
-            .then((map) async {
-          for (var i = 0; i < map.length; i++) {
-            amount.add(new RecipeAmount(
-                map[i]['recipe_item_id'],
-                recipe_id,
-                map[i]['amount'] is int
-                    ? (map[i]['amount'] as int).toDouble()
-                    : map[i]['amount'],
-                map[i]['unit']));
-          }
-        });
-      });
+            await supabase
+                .from(AmountTable().TABLENAME)
+                .select('id, amount, recipe_item_id, unit')
+                .match({'recipe_id': recipe_id})
+
+                ///
+                .then((map) async {
+              for (var i = 0; i < map.length; i++) {
+                amount.add(new RecipeAmount(
+                    map[i]['recipe_item_id'],
+                    recipe_id,
+                    map[i]['amount'] is int
+                        ? (map[i]['amount'] as int).toDouble()
+                        : map[i]['amount'],
+                    map[i]['unit']));
+              }
+            });
+          });
 
       await supabase
           .from("recipe_manual")
@@ -159,19 +159,20 @@ class ShowRecipeState extends State<ShowRecipe> {
         await supabase
             .from("recipe_manual_steps")
             .select("step,id")
-            .match({'manual_id': recipe_manual_id}).then((map) {
-          for (var i = 0; i < map.length; i++) {
-            recipeManualSteps.add(new RecipeManualStep(
-                map[i]['id'], recipe_manual_id, map[i]['step']));
-          }
-        }).whenComplete(() => {
-                  setState(() {
-                    print(recipeItem);
-                    wholeRecipe = WholeRecipeContent(recipe, recipeItem,
-                        recipeManual, recipeManualSteps, amount);
-                    wholeRecipe2 = new Future.value(wholeRecipe);
-                  })
-                });
+            .match({'manual_id': recipe_manual_id})
+            .order('id', ascending: true)
+            .then((map) {
+              for (var i = 0; i < map.length; i++) {
+                recipeManualSteps.add(new RecipeManualStep(
+                    map[i]['id'], recipe_manual_id, map[i]['step']));
+              }
+            })
+            .whenComplete(() => setState(() {
+                  print(recipeItem);
+                  wholeRecipe = WholeRecipeContent(recipe, recipeItem,
+                      recipeManual, recipeManualSteps, amount);
+                  wholeRecipe2 = new Future.value(wholeRecipe);
+                }));
       });
     }).onError((error, stackTrace) {
       return new Future.value();
@@ -196,11 +197,7 @@ class ShowRecipeState extends State<ShowRecipe> {
 
               if (!snapshot.hasData) {
                 return Center(
-                    child: Column(children: [
-                  Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: CircularProgressIndicator())
-                ]));
+                    child: Column(children: [ThemedCircularProgressIndicator]));
               } else {
                 generalInformation.add(DataRow(
                   cells: <DataCell>[
@@ -216,13 +213,46 @@ class ShowRecipeState extends State<ShowRecipe> {
                       wholeRecipe.amount.isNotEmpty) {
                     generalInformation.add(DataRow(
                       cells: <DataCell>[
-                        DataCell(Container(child: buildDropdown(context)
+                        DataCell(Container(
+                            child: Material(
+                                type: MaterialType.transparency,
+                                //  child:
+                                // flex: 1,
+                                child: DropdownButton<String>(
+                                  value: dropdownValue,
+                                  elevation: 16,
+                                  style: const TextStyle(fontSize: 16),
+                                  underline: Container(
+                                    height: 2,
+                                    width: 10,
+                                  ),
+                                  onChanged: (String? value) {
+                                    // This is called when the user selects an item.
+                                    setState(() {
+                                      wholeRecipe.amount.forEach((element) {
+                                        print(element.amount);
+                                        element.amount = double.parse(((element
+                                                    .amount *
+                                                (int.parse(value!) /
+                                                    int.parse(dropdownValue)))
+                                            .toStringAsFixed(2)));
+                                      });
+                                      dropdownValue = value!.toString();
+                                    });
+                                  },
+                                  items: list.map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ))
                             // Text(wholeRecipe.recipe.number_of_people
                             //     .toString()),
                             )),
                         DataCell(Text(
                             wholeRecipe.recipe.prep_time.toString() + " min")),
-                        DataCell(Text(wholeRecipe.recipe.rating.toString()))
+                        DataCell(Text(wholeRecipe.recipe.rating ?? "TODO"))
                       ],
                     ));
                   }
@@ -308,16 +338,28 @@ class ShowRecipeState extends State<ShowRecipe> {
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                    IconButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => RecipePopUp(wholeRecipe),
+                    // Recipe editing here
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                        child: FloatingActionButton.extended(
+                          backgroundColor: primaryColor.withOpacity(0.9),
+                          shape: roundedRectangleBorder,
+                          label: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text("Rezept bearbeiten"),
+                              const Icon(Icons.edit),
+                            ],
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.edit),
-                    ),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => RecipePopUp(wholeRecipe),
+                              ),
+                            );
+                          },
+                        )),
+
                     DataTable(
                         headingRowHeight: 0,
                         dividerThickness: 0.0,

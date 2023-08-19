@@ -97,3 +97,14 @@ class ShoppingListGeneral extends DatabaseTable {
     throw UnimplementedError();
   }
 }
+
+class UserCustomSettings extends DatabaseTable {
+  @override
+  String TABLENAME = 'user_custom_settings';
+
+  @override
+  toJson(argument1, argument2) {
+    // TODO: implement toJson
+    throw UnimplementedError();
+  }
+}

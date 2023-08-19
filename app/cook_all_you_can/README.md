@@ -18,15 +18,20 @@ samples, guidance on mobile development, and a full API reference.
 - TODO's:
     - Filter for recipes
     - Pagination
-    - User Authentification
+    - Nutrition score
+    - Fulltextsearch
+    - Elastic Search
+    - Categories
     - Readjust recipes list
-    - amounttable -> amounttable & unittable
-    - user inpu feedback in general
+    - user input feedback in general
     - add image to recipe
     - refresh possibility
     - Change queries to GraphiQL
-    - adjust selectedDayColor in calendar
-    - Custom Datepicker for shoppinglist -> default currentWeek
     - editRecipe
     - expandable for shoppinglist[s]
     - zutaten alle in eine liste und automatische Trennung
+    - Github Pages
+    - Rating, specific for households
+    - Comment field on recipe
+    - Push Notifications
+    - Filter (rating, name, time)

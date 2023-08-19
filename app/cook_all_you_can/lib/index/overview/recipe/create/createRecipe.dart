@@ -1,9 +1,9 @@
-import 'dart:developer';
 import 'dart:io';
 
-import 'package:cook_all_you_can/recipe/recipes.dart';
-import 'package:cook_all_you_can/recipe/showRecipe.dart';
-import 'package:cook_all_you_can/shared/database/table.dart';
+import 'package:cook_all_you_can/index/overview/overview.dart';
+import 'package:cook_all_you_can/index/overview/recipe/show/showRecipe.dart';
+import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
+import 'package:cook_all_you_can/index/overview/shared/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,7 +22,6 @@ class RecipePopUp extends StatefulWidget {
 
 class _RecipePopUpState extends State<RecipePopUp> {
   final supabase = Supabase.instance.client;
-  String recipe_name = "";
   List<String> numberOfPeopleList = <String>['1', '2', '3', '4'];
   String numberOfPeopleDropdownValue = '1';
 
@@ -37,7 +36,6 @@ class _RecipePopUpState extends State<RecipePopUp> {
       List.generate(2, (i) => TextEditingController());
 
   late WholeRecipeContent wholeRecipe;
-
   String isInsertOrUpdate = 'insert';
 
   Map<String, List<Map<int, dynamic>>> changedValues = new Map();
@@ -57,39 +55,38 @@ class _RecipePopUpState extends State<RecipePopUp> {
     // TODO: implement initState
     super.initState();
 
-    /// TODO: find better way to distinguish showRecipe or recipes as pevious view
+    // TODO: find better way to distinguish showRecipe or recipes as previous view
     if (wholeRecipe?.recipe?.id != 0) {
       isInsertOrUpdate = 'update';
       // Empty Lists for recipe editing
       defaultUnit.clear();
       // importanceDropdownValue.clear();
       ingredients.clear();
+      manualSteps.clear();
       manualStepsController.clear();
 
       generalController[0].text = wholeRecipe.recipe.name;
       generalController[1].text = wholeRecipe.recipe.prep_time.toString();
-      // generalController[0].addListener(
-      //     _listener(generalController[0], 0, RecipeTable().TABLENAME));
-      // generalController[1].addListener(
-      //     _listener(generalController[1], 1, RecipeTable().TABLENAME));
 
       numberOfPeopleDropdownValue =
           wholeRecipe.recipe.number_of_people.toString();
 
-      for (var recipe_item_id in wholeRecipe.recipeItem.asMap().keys) {
-        addIngredient(
-            wholeRecipe,
-            wholeRecipe.recipeItem
-                .firstWhere((element) => element.id == recipe_item_id)
-                .id);
+      for (var recipe_item in wholeRecipe.recipeItem) {
+        var recipeItemId = wholeRecipe.recipeItem
+            .indexWhere((element) => element.id == recipe_item.id);
+
+        // ignore: unnecessary_null_comparison
+        if (recipe_item.id == null) {
+          continue;
+        }
+        addIngredient(wholeRecipe, recipeItemId);
       }
 
       for (var manual_step_id in wholeRecipe.recipeManualSteps.asMap().keys) {
         manualStepsController.add(TextEditingController());
         manualStepsController[manual_step_id].text =
             wholeRecipe.recipeManualSteps[manual_step_id].step;
-        // manualStepsController[x].addListener(
-        //     _listener(manualStepsController[x], x, "recipe_manual_steps"));
+        manualSteps.add(wholeRecipe.recipeManualSteps[manual_step_id].step);
       }
     }
   }
@@ -97,12 +94,14 @@ class _RecipePopUpState extends State<RecipePopUp> {
   void addSteps() {
     setState(() {
       manualStepsController.add(TextEditingController());
+      manualSteps.add("");
     });
   }
 
   void removeSteps(int index) {
     setState(() {
       manualStepsController.removeAt(index);
+      manualSteps.removeAt(index);
     });
   }
 
@@ -134,32 +133,16 @@ class _RecipePopUpState extends State<RecipePopUp> {
     }
   }
 
-  /// Move to utils-class
-  bool allFieldsAreFilled() {
-    if (amountController.every((element) {
-          return element.text != '';
-        }) &&
-        generalController.every((element) {
-          return element.text != '';
-        }) &&
-        ingredientController.every((element) {
-          return element.text != '';
-        })) {
-      return true;
-    }
-
-    return false;
-  }
-
   final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Rezept erstellen'),
-          backgroundColor: Colors.green[300],
-        ),
+        appBar: getAppBar(
+            context,
+            isInsertOrUpdate == 'insert'
+                ? 'Rezept erstellen'
+                : 'Rezept updaten'),
         body: Form(
             key: _formKey,
             child: ListView.builder(
@@ -196,10 +179,33 @@ class _RecipePopUpState extends State<RecipePopUp> {
                               Text("Anzahl von Personen"),
                               Expanded(
                                   child: Align(
-                                      child: buildDropdown(
-                                          context,
-                                          numberOfPeopleDropdownValue,
-                                          numberOfPeopleList)))
+                                      child: Material(
+                                          type: MaterialType.transparency,
+                                          child: DropdownButton<String>(
+                                            value: numberOfPeopleDropdownValue,
+                                            elevation: 16,
+                                            style:
+                                                const TextStyle(fontSize: 16),
+                                            underline: Container(
+                                              height: 2,
+                                              width: 10,
+                                            ),
+                                            onChanged: (String? value) {
+                                              // This is called when the user selects an item.
+                                              setState(() {
+                                                print(value);
+                                                numberOfPeopleDropdownValue =
+                                                    value!.toString();
+                                              });
+                                            },
+                                            items: numberOfPeopleList
+                                                .map((String value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text(value),
+                                              );
+                                            }).toList(),
+                                          ))))
                             ]),
                         for (var x = 0; x < ingredients.length; x++) ...[
                           /// TODO: Think of datamodel with optional Ingredients and nutritiontable
@@ -301,18 +307,6 @@ class _RecipePopUpState extends State<RecipePopUp> {
                                     isDense: true),
                                 maxLines: null,
                                 validator: (value) => validateTextForm(value),
-                                onChanged: (value) {
-                                  _listener(manualStepsController[x], x,
-                                      "recipe_manual_steps");
-                                  // if (changedValues['recipe_manual_steps']
-                                  //         ?.isEmpty ??
-                                  //     true) {
-                                  //   changedValues['recipe_manual_steps'] = [];
-                                  // }
-                                  // manualStepsController[x].
-                                  // changedValues['recipe_manual_steps']
-                                  //     ?.add({x: value});
-                                },
                               )),
                             ],
                           )
@@ -335,7 +329,10 @@ class _RecipePopUpState extends State<RecipePopUp> {
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   var snackbar = showNotification(
-                                      context, "Rezept wird angelegt");
+                                      context,
+                                      isInsertOrUpdate == 'update'
+                                          ? 'Rezept wird aktualisiert, Kalendar und Einkausfsliste wird nicht upgedated'
+                                          : 'Rezept wird angelegt');
                                   submitRecipes().then((value) => {
                                         sleep(Duration(seconds: 1)),
                                         snackbar.close()
@@ -392,12 +389,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
             : wholeRecipe.amount[index].amount)
         .toString();
 
-    // importanceDropdownValue.add("Essentiell");
     ingredients.add(Ingredient("Zutat", "", ""));
-    // ingredientController[index].addListener(_listener(
-    //     ingredientController[index], index, RecipeItemTable().TABLENAME));
-    // amountController[index].addListener(
-    //     _listener(amountController[index], index, AmountTable().TABLENAME));
   }
 
   _listener(TextEditingController controller, int index, String tableName) {
@@ -427,32 +419,21 @@ class _RecipePopUpState extends State<RecipePopUp> {
       manualSteps.add(new RecipeManualStep(
           manual_id, manual_id, manualStepsController[manual_id].text));
     }
-
-    // this.changedWholeRecipe = new WholeRecipeContent(
-    //   new Recipe(generalController[0].text,generalController[1].text,null,numberOfPeopleDropdownValue as int, wholeRecipe.recipe.id),
   }
 
   Future<void> updateExistingRecipe() async {
     int recipe_id = 0;
-    debugger();
 
     Map<String, List<Map<int, dynamic>>> changedValues2 = new Map();
 
-    /**
-     * Option 1: 
-     * - Delete ingredients and manualsteps
-     * - update recipe and manual
-     * 
-     * Option 2:
-     * update all
-     */
-
+// Name
     if (wholeRecipe.recipe.name != generalController[0].text) {
       changedValues2[RecipeTable().TABLENAME] = [
         {wholeRecipe.recipe.id: generalController[0].text}
       ];
     }
 
+// Prep time
     if (wholeRecipe.recipe.rating != generalController[0].text) {
       changedValues2[RecipeTable().TABLENAME] = [
         {wholeRecipe.recipe.id: generalController[0].text}
@@ -462,80 +443,116 @@ class _RecipePopUpState extends State<RecipePopUp> {
     await supabase
         .from(RecipeTable().TABLENAME)
         .update({
-          "name": generalController[0]?.text ?? "----",
-          // "prep_time": generalController[1]? ?? 0,
+          'name': generalController[0].text,
+          'prep_time': generalController[1].text,
           'number_of_people': numberOfPeopleDropdownValue
         })
+        .eq('id', wholeRecipe.recipe.id)
         .select('id')
         .onError((error, stackTrace) => print("no data"))
         .then((value) async {
-          debugger();
           recipe_id = value[0]['id'];
 
-          Map<int, Map<String, dynamic>> updateIngredients = new Map();
           for (var i = 0; i < ingredients.length; i++) {
             var ingredient = ingredientController[i].text;
-            updateIngredients[i] = {
-              'name': ingredient,
-              'recipe_id': recipe_id,
-              // 'importance': importanceDropdownValue[i]
-            };
-          }
 
-          /// RecipeItemTable
-          await supabase
-              .from(RecipeItemTable().TABLENAME)
-              .update(updateIngredients)
-              .select('id, name')
-              .onError((error, stackTrace) => print("no data"))
-              .then((map) async {
-            ///
-            Map<int, Map<String, dynamic>> updateIngredientAmount = new Map();
-            for (var i = 0; i < map.length; i++) {
-              var recipe_item_id = map[i]['id'];
-              var amount = amountController[i].text;
-              updateIngredientAmount[i] = {
-                'recipe_item_id': recipe_item_id,
-                'recipe_id': recipe_id,
-                'amount': amount.replaceAll(',', '.'),
-                'unit': defaultUnit[i]
-              };
-            }
-
-            await supabase
-                .from(AmountTable().TABLENAME)
-                .update(updateIngredientAmount)
-                .whenComplete(() async {
+            if (wholeRecipe!.recipeItem.length > i &&
+                wholeRecipe!.recipeItem.elementAt(i)?.id != null) {
               await supabase
-                  .from("recipe_manual")
-                  .update({
-                    'recipe_id': recipe_id,
-                    'steps': manualStepsController.length
-                  })
-                  .select('id')
-                  .then((value) async {
-                    var recipe_manual_id = value[0]['id'];
-
-                    Map<int, Map<String, dynamic>> updateSteps = new Map();
-                    for (var i = 0; i < manualStepsController.length; i++) {
-                      var step = manualStepsController[i].text;
-                      print('step ${step}');
-                      updateSteps[i] = {
-                        'manual_id': recipe_manual_id,
-                        'step': step
-                      };
-                    }
-                    await supabase
-                        .from("recipe_manual_steps")
-                        .update(updateSteps)
-                        .select('id')
-                        .whenComplete(() {
-                      Navigator.of(context).pop();
-                      return new Future.value();
+                  .from(RecipeItemTable().TABLENAME)
+                  .update({'name': ingredient})
+                  .match({'id': wholeRecipe.recipeItem[i].id})
+                  .select('id, name')
+                  .then((map) async {
+                    await supabase.from(AmountTable().TABLENAME).update({
+                      'amount': amountController[i].text,
+                      'unit': defaultUnit[i]
+                    }).match({
+                      'recipe_item_id': map[0]['id'],
+                      'recipe_id': recipe_id
                     });
                   });
-            });
-          });
+            } else {
+              await supabase
+                  .from(RecipeItemTable().TABLENAME)
+                  .insert({
+                    'name': ingredient,
+                    'recipe_id': recipe_id,
+                    'importance': null
+                  })
+                  .select('id, name')
+                  .then((map) async {
+                    await supabase.from(AmountTable().TABLENAME).insert({
+                      'recipe_item_id': map[0]['id'],
+                      'recipe_id': recipe_id,
+                      'amount': amountController[i].text,
+                      'unit': defaultUnit[i]
+                    });
+                  });
+            }
+          }
+
+          if (wholeRecipe.recipeItem.length > ingredients.length) {
+            var difference = wholeRecipe.recipeItem.length - ingredients.length;
+            var reversedRecipeItems =
+                new List.from(wholeRecipe.recipeItem.reversed);
+
+            for (var i = 0; i < difference; i++) {
+              await supabase.from(AmountTable().TABLENAME).delete().match({
+                'recipe_item_id': reversedRecipeItems[i].id
+              }).whenComplete(() async => await supabase
+                  .from(RecipeItemTable().TABLENAME)
+                  .delete()
+                  .match({'id': reversedRecipeItems[i].id}));
+            }
+          }
+
+// Recipe manual
+          var recipe_manual_id;
+          await supabase
+              .from('recipe_manual')
+              .update({'steps': manualStepsController.length})
+              .match({'recipe_id': recipe_id})
+              .select('id')
+              .then((map) async {
+                recipe_manual_id = map[0]['id'];
+              });
+
+          for (var i = 0; i < manualSteps.length; i++) {
+            if (wholeRecipe!.recipeManualSteps.length > i &&
+                wholeRecipe!.recipeManualSteps.elementAt(i)?.id != null) {
+              print(wholeRecipe.recipeManualSteps[i].id);
+              // recipe manual steps
+              await supabase.from('recipe_manual_steps').update({
+                'step': manualStepsController[i].text,
+              }).match({
+                'manual_id': recipe_manual_id,
+                'id': wholeRecipe.recipeManualSteps[i].id
+              }).whenComplete(() async {});
+              // });
+            } else {
+              await supabase.from('recipe_manual_steps').insert({
+                'step': manualStepsController[i].text,
+                'manual_id': recipe_manual_id
+              });
+            }
+
+            // TODO shopping list and calendar
+          }
+
+          if (wholeRecipe.recipeManualSteps.length > manualSteps.length) {
+            var difference =
+                wholeRecipe.recipeManualSteps.length - manualSteps.length;
+            var reversedRecipeManualSteps =
+                new List.from(wholeRecipe.recipeManualSteps.reversed);
+
+            for (var i = 0; i < difference; i++) {
+              await supabase
+                  .from('recipe_manual_steps')
+                  .delete()
+                  .match({'id': reversedRecipeManualSteps[i].id});
+            }
+          }
         });
   }
 

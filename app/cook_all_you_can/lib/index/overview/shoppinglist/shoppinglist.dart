@@ -1,16 +1,21 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:accordion/accordion.dart';
+import 'package:accordion/controllers.dart';
 import 'package:cook_all_you_can/button.dart';
-import 'package:cook_all_you_can/calendar/calendar.dart';
-import 'package:cook_all_you_can/shared/database/table.dart';
-import 'package:cook_all_you_can/shared/shared.dart';
+import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
+import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
+import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
@@ -21,34 +26,33 @@ class ShoppingList extends StatefulWidget {
 
 class _ShoppingListState extends State<ShoppingList> {
   final supabase = Supabase.instance.client;
-  String dropdownValue = 'Woche';
-  late Future<List<ShoppingListItemFromRecipe>> shoppingList =
-      getShoppingListFromRecipesForSelectedRange();
 
-  late Future<List<ShoppingListItemFromGeneral>> generalShoppingList =
-      getGeneralShoppingList();
-  List<String> list = <String>['Woche'];
   Map<List<int>, Map<String, String>> isChecked = new Map();
   Map<int, Map<String, String>> isGeneralShoppingListChecked = new Map();
-  late String firstDayOfWeek;
-  late String lastDayOfWeek;
-  bool showAdditionalInfo = false;
-  final _formKey = GlobalKey<FormState>();
-  final _generalShoppingListformKey = GlobalKey<FormState>();
   List<TextEditingController> generalController =
       List.generate(1, (i) => TextEditingController());
-
   ScrollController test = new ScrollController();
+  bool showAdditionalInfo = false;
+
+  final _formKey = GlobalKey<FormState>();
+  final _generalShoppingListformKey = GlobalKey<FormState>();
+  late String firstDayOfWeek;
+  late String lastDayOfWeek;
+
+  late Future<List<ShoppingListItemFromRecipe>> shoppingList =
+      getShoppingListFromRecipesForSelectedRange();
+  late Future<List<ShoppingListItemFromGeneral>> generalShoppingList =
+      getGeneralShoppingList();
 
   @override
   void initState() {
-    // TODO: datepicker
     final today = DateTime.now();
     firstDayOfWeek = DateFormat('yyyy-MM-dd')
         .format(today.subtract(Duration(days: today.weekday - 1)));
 
     lastDayOfWeek = DateFormat('yyyy-MM-dd').format(
         today.add(Duration(days: DateTime.daysPerWeek - today.weekday)));
+
     super.initState();
   }
 
@@ -119,63 +123,140 @@ class _ShoppingListState extends State<ShoppingList> {
     return Future.delayed(Duration(milliseconds: 100), () => result);
   }
 
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    setState(() {
+      firstDayOfWeek =
+          DateFormat('yyyy-MM-dd').format(args.value.startDate).toString();
+      lastDayOfWeek =
+          DateFormat('yyyy-MM-dd').format(args.value.endDate).toString();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            DropdownButton<String>(
-              value: dropdownValue,
-              elevation: 16,
-              style: const TextStyle(fontSize: 16),
-              underline: Container(
-                height: 2,
-                width: 10,
-              ),
-              onChanged: (String? value) {
-                // This is called when the user selects an item.
-                setState(() {
-                  dropdownValue = value!.toString();
-                  shoppingList = getShoppingListFromRecipesForSelectedRange();
-                });
-              },
-              items: list.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value + " " + firstDayOfWeek! + "-" + lastDayOfWeek!,
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              }).toList(),
-            )
-          ]),
-      Row(children: [
-        Column(mainAxisAlignment: MainAxisAlignment.end, children: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                var snackbar =
-                    showNotification(context, "Liste wird aktualisiert");
+      Padding(
+          padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(children: [
+                  FloatingActionButton.extended(
+                      backgroundColor: primaryColor.withOpacity(0.9),
+                      shape: roundedRectangleBorder,
+                      onPressed: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                  title: Text(''),
+                                  content: Container(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: MediaQuery.of(context).size.height /
+                                        2.5,
+                                    child: Column(
+                                      children: <Widget>[
+                                        SfDateRangePicker(
+                                          backgroundColor: Colors.transparent,
+                                          todayHighlightColor: Colors.white,
+                                          headerStyle:
+                                              DateRangePickerHeaderStyle(
+                                                  textStyle: TextStyle(
+                                                      color: Colors.white)),
+                                          monthViewSettings:
+                                              DateRangePickerMonthViewSettings(
+                                                  viewHeaderStyle:
+                                                      DateRangePickerViewHeaderStyle(
+                                                          textStyle: TextStyle(
+                                                              color: Colors
+                                                                  .white))),
+                                          monthCellStyle:
+                                              DateRangePickerMonthCellStyle(
+                                                  leadingDatesTextStyle:
+                                                      TextStyle(
+                                                          color: Colors.white),
+                                                  textStyle: TextStyle(
+                                                      color: Colors.white)),
+                                          onSelectionChanged:
+                                              _onSelectionChanged,
+                                          selectionMode:
+                                              DateRangePickerSelectionMode
+                                                  .range,
+                                          initialSelectedRange: PickerDateRange(
+                                            DateTime.now().subtract(
+                                                const Duration(days: 4)),
+                                            DateTime.now()
+                                                .add(const Duration(days: 7)),
+                                          ),
+                                        ),
+                                        MaterialButton(
+                                          child: Text("OK"),
+                                          onPressed: () {
+                                            setState(() {
+                                              var snackbar = showNotification(
+                                                  context,
+                                                  "Liste wird aktualisiert");
 
-                this.shoppingList = getShoppingListFromRecipesForSelectedRange()
-                    .whenComplete(() {
-                  this.generalShoppingList =
-                      getGeneralShoppingList().whenComplete(() {
-                    snackbar.close();
-                  });
-                });
-              });
-            },
-            child: Icon(
-              Icons.refresh,
-              color: primaryColor,
-            ),
-          )
-        ])
-      ]),
+                                              this.shoppingList =
+                                                  getShoppingListFromRecipesForSelectedRange()
+                                                      .whenComplete(() {
+                                                this.generalShoppingList =
+                                                    getGeneralShoppingList()
+                                                        .whenComplete(() {
+                                                  snackbar.close();
+                                                });
+                                              });
+                                            });
+                                            Navigator.pop(context);
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  ));
+                            });
+                      },
+                      label: Row(
+                        children: [
+                          Text(firstDayOfWeek + " - " + lastDayOfWeek,
+                              style: TextStyle(color: Colors.black)),
+                        ],
+                      )),
+                ]),
+                Column(children: [
+                  FloatingActionButton.extended(
+                    backgroundColor: primaryColor.withOpacity(0.9),
+                    shape: roundedRectangleBorder,
+                    onPressed: () {
+                      setState(() {
+                        var snackbar = showNotification(
+                            context, "Liste wird aktualisiert");
+
+                        this.shoppingList =
+                            getShoppingListFromRecipesForSelectedRange()
+                                .whenComplete(() {
+                          this.generalShoppingList =
+                              getGeneralShoppingList().whenComplete(() {
+                            snackbar.close();
+                          });
+                        });
+                      });
+                    },
+                    label: Row(
+                      children: [
+                        Icon(
+                          Icons.refresh,
+                          color: Colors.black,
+                        ),
+                      ],
+                    ),
+                    // child: Icon(
+                    //   Icons.refresh,
+                    //   color: primaryColor,
+                    // ),
+                  )
+                ])
+              ])),
 
       Expanded(
           child: SingleChildScrollView(
@@ -190,11 +271,8 @@ class _ShoppingListState extends State<ShoppingList> {
 
                       if (!snapshot.hasData) {
                         return Center(
-                            child: Column(children: [
-                          Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: CircularProgressIndicator())
-                        ]));
+                            child: Column(
+                                children: [ThemedCircularProgressIndicator]));
                       }
 
                       children.add(Text(
@@ -229,7 +307,8 @@ class _ShoppingListState extends State<ShoppingList> {
 
                         for (var data in snapshot.requireData) {
                           children.add(CheckboxListTile(
-                            title: Wrap(alignment: WrapAlignment.spaceBetween,
+                            title: Wrap(
+                                alignment: WrapAlignment.spaceBetween,
                                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Column(
@@ -295,11 +374,8 @@ class _ShoppingListState extends State<ShoppingList> {
 
                       if (!snapshot.hasData) {
                         return Center(
-                            child: Column(children: [
-                          Padding(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              child: CircularProgressIndicator())
-                        ]));
+                            child: Column(
+                                children: [ThemedCircularProgressIndicator]));
                       }
 
                       if (snapshot.hasData) {
@@ -316,7 +392,8 @@ class _ShoppingListState extends State<ShoppingList> {
 
                         for (var data in snapshot.requireData) {
                           children.add(CheckboxListTile(
-                              title: Wrap(alignment: WrapAlignment.spaceBetween,
+                              title: Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
                                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
@@ -367,6 +444,19 @@ class _ShoppingListState extends State<ShoppingList> {
                                           isDense: true),
                                       validator: (value) =>
                                           validateTextForm(value))),
+                              IconButton(
+                                onPressed: () {
+                                  if (_generalShoppingListformKey.currentState!
+                                      .validate()) {
+                                    var snackbar = showNotification(context,
+                                        "Allgemeine Einkaufsliste wird upgedated");
+
+                                    submitGeneralShoppingList()
+                                        .whenComplete(() => snackbar.close());
+                                  }
+                                },
+                                icon: const Icon(Icons.send),
+                              ),
                             ],
                           ));
                         }
@@ -390,23 +480,6 @@ class _ShoppingListState extends State<ShoppingList> {
                                       size: 24),
                                 ),
                               )),
-                          Expanded(
-                              child: Align(
-                            alignment: Alignment.bottomRight,
-                            child: IconButton(
-                              onPressed: () {
-                                if (_generalShoppingListformKey.currentState!
-                                    .validate()) {
-                                  var snackbar = showNotification(context,
-                                      "Allgemeine Einkaufsliste wird upgedated");
-
-                                  submitGeneralShoppingList()
-                                      .whenComplete(() => snackbar.close());
-                                }
-                              },
-                              icon: const Icon(Icons.send),
-                            ),
-                          )),
                         ]),
                       );
                       ;

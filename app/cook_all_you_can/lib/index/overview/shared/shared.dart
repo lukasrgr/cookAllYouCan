@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../recipe/recipes.dart';
-import '../recipe/showRecipe.dart';
+import '../overview.dart';
+import '../recipe/show/showRecipe.dart';
 import 'database/table.dart';
+import 'dart:async';
+import 'dart:io';
 
-const primaryColor = Color(0xFF81C784);
-const secondaryColor = Colors.black;
+/** TODO move into own file and cleanup */
+var primaryColor = defaultPrimaryColor;
+const defaultPrimaryColor = Color(0xFF81C784);
+var secondaryColor = defaultSecondaryColor;
+const defaultSecondaryColor = Colors.black;
 
 List<DropdownMenuItem<String>> get dropdownItems {
   List<DropdownMenuItem<String>> menuItems = [
@@ -28,23 +35,40 @@ String? validateTextForm(String? value) {
 ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
     BuildContext context, String message,
     [Color? bgcolor]) {
-  late AnimationController controller;
   return ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      backgroundColor: bgcolor ?? primaryColor,
-      content: Row(
-        children: [
-          Text(message,
-              style:
-                  // message,
-                  TextStyle(
-                color: secondaryColor,
-              )),
-          Spacer(),
-          CircularProgressIndicator()
-        ],
-      ),
-    ),
+        backgroundColor: bgcolor ?? primaryColor,
+        content: Row(
+          children: [
+            Flexible(
+                child: Text(message,
+                    style:
+                        // message,
+                        TextStyle(
+                      color: secondaryColor,
+                    ))),
+            Spacer(),
+            CircularProgressIndicator(color: Colors.black)
+          ],
+        )),
+  );
+}
+
+onLoading(BuildContext context) {
+  return showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: new Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            new CircularProgressIndicator(),
+            new Text("Loading"),
+          ],
+        ),
+      );
+    },
   );
 }
 
@@ -290,3 +314,135 @@ class CheckboxFormField extends FormField<bool> {
               );
             });
 }
+
+class Ingredient {
+  String name;
+  String amount;
+  String unit;
+  Ingredient(this.name, this.amount, this.unit);
+}
+
+class Recipe {
+  String name;
+  dynamic prep_time;
+  dynamic rating;
+  int number_of_people;
+  int id;
+  Recipe(
+      this.name, this.prep_time, this.rating, this.number_of_people, this.id);
+}
+
+class RecipeItem {
+  String name;
+  int recipe_id;
+  int id;
+  RecipeItem(this.name, this.recipe_id, this.id);
+}
+
+class RecipeAmount {
+  int recipe_item_id;
+  int recipe_id;
+  double amount;
+  String unit;
+  RecipeAmount(this.recipe_item_id, this.recipe_id, this.amount, this.unit);
+}
+
+class RecipeManual {
+  int steps;
+  int recipe_id;
+  RecipeManual(this.steps, this.recipe_id);
+}
+
+class RecipeManualStep {
+  int id;
+  int manual_id;
+  String step;
+  RecipeManualStep(this.id, this.manual_id, this.step);
+}
+
+class CustomUserSettings {
+  int id;
+  String primaryColor;
+  String secondaryColor;
+
+  CustomUserSettings(this.id, this.primaryColor, this.secondaryColor);
+}
+
+class CounterStorage {
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/variables.txt');
+  }
+
+  Future<String> readCounter() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      final contents = await file.readAsString();
+
+      return contents;
+    } catch (e) {
+      // If encountering an error, return 0
+      return "";
+    }
+  }
+
+  Future<File> writeCounter(String counter) async {
+    final file = await _localFile;
+
+    // Write the file
+    return file.writeAsString('$counter');
+  }
+}
+
+//Loading counter value on start
+Future<String?> loadDeviceData(String id) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(id) ?? null;
+}
+
+//Incrementing counter after click
+Future<void> saveDataOnDevice(String id, String value) async {
+  final prefs = await SharedPreferences.getInstance();
+  // setState(() {
+  prefs.setString(id, value);
+  // });
+}
+
+parseColorStringToColor(String color) {
+  String valueString = color.split('(0x')[1].split(')')[0]; // kind of hacky..
+  int value = int.parse(valueString, radix: 16);
+  return Color(value);
+}
+
+const MaterialColor kToDark = const MaterialColor(
+  0xffe55f48, // 0% comes in here, this will be color picked if no shade is selected when defining a Color property which doesn’t require a swatch.
+  const <int, Color>{
+    50: const Color(0xffce5641), //10%
+    100: const Color(0xffb74c3a), //20%
+    200: const Color(0xffa04332), //30%
+    300: const Color(0xff89392b), //40%
+    400: const Color(0xff733024), //50%
+    500: const Color(0xff5c261d), //60%
+    600: const Color(0xff451c16), //70%
+    700: const Color(0xff2e130e), //80%
+    800: const Color(0xff170907), //90%
+    900: const Color(0xff000000), //100%
+  },
+);
+
+const roundedRectangleBorder = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.elliptical(10, 10)));
+const noBorder = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.elliptical(0, 0)));
+
+var ThemedCircularProgressIndicator = Padding(
+    padding: EdgeInsets.symmetric(vertical: 20),
+    child: CircularProgressIndicator(color: primaryColor));
