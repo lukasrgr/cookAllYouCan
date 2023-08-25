@@ -36,7 +36,7 @@ samples, guidance on mobile development, and a full API reference.
     - Push Notifications
     - Filter (rating, name, time)
 
-Features: 
+- Features:
     - Animations: https://pub.dev/packages/animations
     - Local notification: https://pub.dev/packages/flutter_local_notifications
     - Slidable: (Used for listitem, to interact without popup) https://pub.dev/packages/flutter_slidable
