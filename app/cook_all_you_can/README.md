@@ -35,3 +35,10 @@ samples, guidance on mobile development, and a full API reference.
     - Comment field on recipe
     - Push Notifications
     - Filter (rating, name, time)
+
+Features: 
+    - Animations: https://pub.dev/packages/animations
+    - Local notification: https://pub.dev/packages/flutter_local_notifications
+    - Slidable: (Used for listitem, to interact without popup) https://pub.dev/packages/flutter_slidable
+    - flutter native splash: https://pub.dev/packages/flutter_native_splash
+    - pull_to_refresh: https://pub.dev/packages/pull_to_refresh
