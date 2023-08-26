@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "cook_all_you_can",
+            "cwd": "app\\cook_all_you_can",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "cook_all_you_can (profile mode)",
+            "cwd": "app\\cook_all_you_can",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "cook_all_you_can (release mode)",
+            "cwd": "app\\cook_all_you_can",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

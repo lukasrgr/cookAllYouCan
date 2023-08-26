@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../settings/colorpicker/colorpicker.dart';
 import '../shared.dart';
 import '../utils.dart';
 
@@ -15,40 +16,12 @@ class UserPage extends StatefulWidget {
 
 class UserPageState extends State<UserPage> {
   final supabase = Supabase.instance.client;
-  late final userData;
-  var some;
-
-  var stream;
+  late Future<String?> household = loadDeviceData('household');
 
   @override
   void initState() {
-    // stream =
-    //     supabase.from('recipe').stream(primaryKey: ['id']).listen((event) {});
-    // supabase.channel('public:recipe').on(
-    //   RealtimeListenTypes.postgresChanges,
-    //   ChannelFilter(event: 'INSERT', schema: 'public', table: 'recipe'),
-    //   (payload, [ref]) {
-    //     // text.add(Text("Test ${payload.toString}"));
-    //     print("WQork ------------------");
-    //     print('Change received: ${payload.toString()}');
-    //   },
-    // );
     super.initState();
   }
-
-  // List<Text> some() {
-  //   List<Text> text = [];
-  //   supabase.channel('public:recipe').on(
-  //     RealtimeListenTypes.postgresChanges,
-  //     ChannelFilter(event: 'INSERT', schema: 'public', table: 'recipe'),
-  //     (payload, [ref]) {
-  //       // text.add(Text("Test ${payload.toString}"));
-  //       print('Change received: ${payload.toString()}');
-  //     },
-  //   ).subscribe();
-
-  //   return text;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -63,28 +36,52 @@ class UserPageState extends State<UserPage> {
               children: <Widget>[
                 ListTile(
                     // leading: Icon(Icons.album),
-                    title: Text("Benutzer"),
                     subtitle: Column(
-                      children: [
-                        Padding(
-                            padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                            child: Row(
-                              children: [
-                                Text(supabase?.auth?.currentUser?.email
-                                        ?.toString() ??
-                                    "Undefined"),
-                              ],
-                            )),
-                        // Padding(
-                        //   padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                        //   child: Row(
-                        //     children: [
-                        //       Text(supabase.auth.currentUser!..toString()),
-                        //     ],
-                        //   ),
-                        // ),
-                      ],
-                    )),
+                  children: [
+                    Padding(
+                        padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(children: [
+                              Text("Benutzer"),
+                            ]),
+                            Column(children: [
+                              Text(supabase?.auth?.currentUser?.email
+                                      ?.toString() ??
+                                  "Undefined"),
+                            ]),
+                          ],
+                        )),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(children: [
+                            Text("Haushalt"),
+                          ]),
+                          Column(children: [
+                            new FutureBuilder(
+                                future: household,
+                                builder: (BuildContext context,
+                                    AsyncSnapshot<dynamic> snapshot) {
+                                  if (!snapshot.hasData) {
+                                    return Text("");
+                                  }
+
+                                  if (snapshot.hasData) {
+                                    return Text(snapshot.requireData);
+                                  }
+
+                                  return Container();
+                                }),
+                          ]),
+                        ],
+                      ),
+                    ),
+                  ],
+                )),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -92,13 +89,14 @@ class UserPageState extends State<UserPage> {
                     TextButton(
                       child: Text(
                         'LOGOUT',
-                        style: TextStyle(color: primaryColor),
+                        style: TextStyle(color: MyThemes.primaryColor),
                       ),
                       onPressed: () async {
                         var snackbar = showNotification(context, "Logging out");
                         await supabase.auth.signOut().whenComplete(() {
                           saveDataOnDevice("email", "");
                           saveDataOnDevice("password", "");
+                          saveDataOnDevice("household", "");
                           snackbar.close();
                           Navigator.pushNamedAndRemoveUntil(
                               context, '/login', ModalRoute.withName('/'));

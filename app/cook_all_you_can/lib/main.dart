@@ -1,6 +1,8 @@
 // Copyright 2018 The Flutter team. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import 'dart:async';
+
 import 'package:cook_all_you_can/index/overview/overview.dart';
 import 'package:cook_all_you_can/index/overview/shared/settings/colorpicker/colorpicker.dart';
 import 'package:cook_all_you_can/index/overview/shared/settings/settings.dart';
@@ -11,7 +13,8 @@ import 'package:cook_all_you_can/index/overview/shared/user/user.dart';
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'button.dart';
+
+StreamController<bool> isThemeChanging = StreamController();
 
 Future<void> main() async {
   await Supabase.initialize(
@@ -28,23 +31,28 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Cook All You Can',
-      home: LoginDemo(storage: CounterStorage()),
-      theme: MyThemes.customTheme,
-      initialRoute: '/',
-      routes: {
-        // '/': (context) => Homescreen(),
-        '/details': (context) => const ShoppingList(),
-        '/settings': (context) => const Settings(),
-        '/overview': (context) => Overview(),
-        '/login': (context) => LoginDemo(
-              storage: CounterStorage(),
-            ),
-        '/user': (context) => UserPage(
-              storage: CounterStorage(),
-            ),
-      },
-    );
+    return StreamBuilder<bool>(
+        initialData: true,
+        stream: isThemeChanging.stream,
+        builder: (context, snapshot) {
+          return MaterialApp(
+            title: 'Cook All You Can',
+            home: LoginDemo(storage: CounterStorage()),
+            theme: MyThemes.customTheme,
+            initialRoute: '/',
+            routes: {
+              // '/': (context) => Homescreen(),
+              '/details': (context) => const ShoppingList(),
+              '/settings': (context) => const Settings(),
+              '/overview': (context) => Overview(),
+              '/login': (context) => LoginDemo(
+                    storage: CounterStorage(),
+                  ),
+              '/user': (context) => UserPage(
+                    storage: CounterStorage(),
+                  ),
+            },
+          );
+        });
   }
 }

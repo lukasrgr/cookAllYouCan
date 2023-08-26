@@ -1,3 +1,4 @@
+import 'package:cook_all_you_can/index/overview/shared/settings/colorpicker/colorpicker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,12 +9,6 @@ import '../recipe/show/showRecipe.dart';
 import 'database/table.dart';
 import 'dart:async';
 import 'dart:io';
-
-/** TODO move into own file and cleanup */
-var primaryColor = defaultPrimaryColor;
-const defaultPrimaryColor = Color(0xFF81C784);
-var secondaryColor = defaultSecondaryColor;
-const defaultSecondaryColor = Colors.black;
 
 List<DropdownMenuItem<String>> get dropdownItems {
   List<DropdownMenuItem<String>> menuItems = [
@@ -37,7 +32,7 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
     [Color? bgcolor]) {
   return ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-        backgroundColor: bgcolor ?? primaryColor,
+        backgroundColor: bgcolor ?? MyThemes.primaryColor,
         content: Row(
           children: [
             Flexible(
@@ -45,7 +40,7 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
                     style:
                         // message,
                         TextStyle(
-                      color: secondaryColor,
+                      color: MyThemes.secondaryColor,
                     ))),
             Spacer(),
             CircularProgressIndicator(color: Colors.black)
@@ -445,4 +440,17 @@ const noBorder = RoundedRectangleBorder(
 
 var ThemedCircularProgressIndicator = Padding(
     padding: EdgeInsets.symmetric(vertical: 20),
-    child: CircularProgressIndicator(color: primaryColor));
+    child: CircularProgressIndicator(color: MyThemes.primaryColor));
+
+var ThemedInputDecoration =
+    (String labelText, String hintText) => InputDecoration(
+        fillColor: MyThemes.primaryColor,
+        hoverColor: MyThemes.primaryColor,
+        focusColor: MyThemes.primaryColor,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(width: 3, color: MyThemes.primaryColor),
+        ),
+        border: OutlineInputBorder(),
+        labelText: labelText,
+        labelStyle: TextStyle(color: MyThemes.primaryColor),
+        hintText: hintText);

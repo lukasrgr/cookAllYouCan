@@ -11,6 +11,7 @@ import 'package:flutter_material_pickers/flutter_material_pickers.dart';
 import 'package:intl/intl.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../main.dart';
 import '../database/table.dart';
 
 class Settings extends StatefulWidget {
@@ -24,8 +25,6 @@ class _SettingsState extends State<Settings> {
   final supabase = Supabase.instance.client;
   late Future<List> changelog;
 
-  late String pickerColorId;
-
   final _headerStyle = const TextStyle(
       color: Color(0xffffffff), fontSize: 15, fontWeight: FontWeight.normal);
 
@@ -36,13 +35,23 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> changePrimaryColor(Color color) async {
-    globals.saveDataOnDevice("primaryColor", globals.primaryColor.toString());
-    setState(() => globals.primaryColor = color);
+    globals.saveDataOnDevice("primaryColor", MyThemes.primaryColor.toString());
+    setState(() => {
+          MyThemes.primaryColor = color,
+          isThemeChanging.add(true),
+          MyThemes.customTheme = MyThemes.getThemeData(
+              MyThemes.primaryColor, MyThemes.secondaryColor)
+        });
   }
 
   Future<void> changeSecondaryColor(Color color) async {
-    globals.saveDataOnDevice("secondary", globals.secondaryColor.toString());
-    setState(() => globals.secondaryColor = color);
+    globals.saveDataOnDevice("secondary", MyThemes.secondaryColor.toString());
+    setState(() => {
+          MyThemes.secondaryColor = color,
+          isThemeChanging.add(true),
+          MyThemes.customTheme = MyThemes.getThemeData(
+              MyThemes.primaryColor, MyThemes.secondaryColor)
+        });
   }
 
   Future<void> dialogBuilder(
@@ -54,11 +63,9 @@ class _SettingsState extends State<Settings> {
           title: const Text('Pick a color'),
           content: SingleChildScrollView(
               child: ColorPicker(
-            pickerColor: globals.primaryColor,
+            pickerColor: MyThemes.primaryColor,
             onColorChanged: (value) {
-              // setState(() => colorToChange = value);
-              // changeColor(value);
-              globals.saveDataOnDevice(id, globals.primaryColor.toString());
+              globals.saveDataOnDevice(id, MyThemes.primaryColor.toString());
               callback(value);
             },
           )),
@@ -66,16 +73,25 @@ class _SettingsState extends State<Settings> {
             ElevatedButton(
               style: ButtonStyle(
                   backgroundColor: MaterialStateColor.resolveWith(
-                      (states) => globals.primaryColor)),
+                      (states) => MyThemes.primaryColor)),
               child: const Text(
                 'Ändern',
                 style: TextStyle(color: Colors.black),
               ),
               onPressed: () {
-                // setState(() => currentColor = pickerColor);
                 Navigator.of(context).pop();
+                showAboutDialog(
+                  context: context,
+                  useRootNavigator: true,
+                  children: <Widget>[
+                    Padding(
+                        padding: EdgeInsets.only(top: 15),
+                        child: Text(
+                            'Es wird empfohlen, die App neuzustarten, um alle Style Änderungen sehen zu können.'))
+                  ],
+                );
               },
-            ),
+            )
           ],
         );
       },
@@ -126,13 +142,19 @@ class _SettingsState extends State<Settings> {
                                   color: Colors.white),
                               header: Text('Custom User Settings',
                                   style: _headerStyle),
-                              contentBackgroundColor: globals.secondaryColor,
+                              contentBackgroundColor: MyThemes.secondaryColor,
                               content: Column(children: [
                                 Card(
+                                    color: MyThemes.primaryColor,
                                     child: ListTile(
                                         title: Row(
                                           children: [
-                                            Text("Primärfarbe"),
+                                            Text(
+                                              "Primärfarbe",
+                                              style: TextStyle(
+                                                  color:
+                                                      MyThemes.secondaryColor),
+                                            ),
                                           ],
                                         ),
                                         onTap: () {
@@ -142,8 +164,8 @@ class _SettingsState extends State<Settings> {
                                         onLongPress: () {
                                           buildAlertDialog(
                                               () => setState(() => {
-                                                    globals.primaryColor =
-                                                        globals
+                                                    MyThemes.primaryColor =
+                                                        MyThemes
                                                             .defaultPrimaryColor,
                                                     globals.saveDataOnDevice(
                                                         "primaryColor", "")
@@ -151,10 +173,15 @@ class _SettingsState extends State<Settings> {
                                           ;
                                         })),
                                 Card(
+                                    color: MyThemes.secondaryColor,
                                     child: ListTile(
                                         title: Row(
                                           children: [
-                                            Text("Sekundärfarbe"),
+                                            Text(
+                                              "Sekundärfarbe",
+                                              style: TextStyle(
+                                                  color: MyThemes.primaryColor),
+                                            ),
                                           ],
                                         ),
                                         onTap: () {
@@ -166,8 +193,8 @@ class _SettingsState extends State<Settings> {
                                         onLongPress: () {
                                           buildAlertDialog(
                                               () => setState(() => {
-                                                    globals.secondaryColor =
-                                                        globals
+                                                    MyThemes.secondaryColor =
+                                                        MyThemes
                                                             .defaultSecondaryColor,
                                                     globals.saveDataOnDevice(
                                                         "secondaryColor", "")
@@ -180,7 +207,7 @@ class _SettingsState extends State<Settings> {
                               leftIcon: const Icon(Icons.build_sharp,
                                   color: Colors.white),
                               header: Text('Changelog', style: _headerStyle),
-                              contentBackgroundColor: globals.secondaryColor,
+                              contentBackgroundColor: MyThemes.secondaryColor,
                               content: Accordion(
                                   maxOpenSections: 1,
                                   headerBackgroundColorOpened: Colors.black54,
@@ -197,7 +224,7 @@ class _SettingsState extends State<Settings> {
                                               '${DateFormat('dd. MMMM').format(DateTime.parse((snapshot.requireData[x] as Map)['created_at']))}',
                                               style: _headerStyle),
                                           contentBackgroundColor:
-                                              globals.secondaryColor,
+                                              MyThemes.secondaryColor,
                                           content: Column(children: [
                                             for (var i = 0;
                                                 i <
@@ -267,7 +294,7 @@ class _SettingsState extends State<Settings> {
                       TextButton(
                         child: Text(
                           'Ja',
-                          style: TextStyle(color: globals.primaryColor),
+                          style: TextStyle(color: MyThemes.primaryColor),
                         ),
                         onPressed: () {
                           callback();
@@ -282,7 +309,7 @@ class _SettingsState extends State<Settings> {
                     children: [
                       TextButton(
                         child: Text('Nein',
-                            style: TextStyle(color: globals.primaryColor)),
+                            style: TextStyle(color: MyThemes.primaryColor)),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },

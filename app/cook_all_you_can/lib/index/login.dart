@@ -1,14 +1,10 @@
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:cook_all_you_can/index/overview/overview.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../button.dart';
+import 'overview/shared/settings/colorpicker/colorpicker.dart';
 
 // import 'HomePage.dart';
 class LoginDemo extends StatefulWidget {
@@ -41,6 +37,18 @@ class _LoginDemoState extends State<LoginDemo> {
       supabase.auth
           .signInWithPassword(email: email, password: password) //
           .then((value) => {
+                loadDeviceData('household').then((value) async {
+                  print(value);
+                  if (value == null || value!.length == 0) {
+                    await supabase
+                        .from('user_household')
+                        .select('household')
+                        .match({'user_id': supabase.auth.currentUser!.id}).then(
+                            (value) => saveDataOnDevice(
+                                'household', value[0]['household']));
+                    ;
+                  }
+                }),
                 Navigator.popAndPushNamed(context, '/overview').then((value) {
                   // return false;
                 })
@@ -82,41 +90,68 @@ class _LoginDemoState extends State<LoginDemo> {
                       //padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Column(
                         children: [
-                          Image(
-                            image: AssetImage(
-                                'assets/images/logo_with_new_color.png'),
-                            fit: BoxFit.cover,
-                            width: 250,
+                          SvgPicture.asset(
+                              'assets/images/logo_with_new_color.svg',
+                              colorFilter:
+                                  ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                              semanticsLabel: 'A red up arrow'),
+                          SvgPicture.asset(
+                            'assets/images/logo_with_new_color.svg',
+                            height: 20.0,
+                            width: 20.0,
+                            color: MyThemes.primaryColor,
+                            theme:
+                                SvgTheme(currentColor: MyThemes.primaryColor),
+                            // allowDrawingOutsideViewBox: true,
                           ),
+                          // Image(
+                          //   image: ('assets/images/logo_with_new_color.svg'),
+                          //   // image: AssetImage(
+                          //   //     'assets/images/logo_with_new_color.svg'),
+                          //   fit: BoxFit.cover,
+                          //   width: 250,
+                          // ),
                         ],
                       )),
               Padding(
                 //padding: const EdgeInsets.only(left:15.0,right: 15.0,top:0,bottom: 0),
                 padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextFormField(
-                  controller: userNameController,
-                  autofillHints: [AutofillHints.username],
-                  validator: (value) => validateTextForm(value),
-                  decoration: InputDecoration(
+                    controller: userNameController,
+                    autofillHints: [AutofillHints.username],
+                    validator: (value) => validateTextForm(value),
+                    decoration: ThemedInputDecoration(
+                        'Email', 'Email in form of abc@gmail.com')
+
+                    /*InputDecoration(
+                      fillColor: primaryColor,
+                      hoverColor: primaryColor,
+                      focusColor: primaryColor,
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(width: 3, color: primaryColor),
+                      ),
                       border: OutlineInputBorder(),
                       labelText: 'Email',
-                      hintText: 'Email in form of abc@gmail.com'),
-                ),
+                      labelStyle: TextStyle(color: primaryColor),
+                      hintText: 'Email in form of abc@gmail.com'),*/
+                    ),
               ),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 15, bottom: 0),
                 //padding: EdgeInsets.symmetric(horizontal: 15),
                 child: TextFormField(
-                  controller: passwordController,
-                  autofillHints: [AutofillHints.password],
-                  obscureText: true,
-                  validator: (value) => validateTextForm(value),
-                  decoration: InputDecoration(
+                    controller: passwordController,
+                    autofillHints: [AutofillHints.password],
+                    obscureText: true,
+                    validator: (value) => validateTextForm(value),
+                    decoration: ThemedInputDecoration('Password', 'Password')
+
+                    /*InputDecoration(
                       border: OutlineInputBorder(),
                       labelText: 'Password',
-                      hintText: 'Password'),
-                ),
+                      hintText: 'Password'),*/
+                    ),
               ),
               Padding(
                   padding: const EdgeInsets.only(top: 20.0),
@@ -126,12 +161,12 @@ class _LoginDemoState extends State<LoginDemo> {
                 height: 50,
                 width: 250,
                 decoration: BoxDecoration(
-                    color: primaryColor,
+                    color: MyThemes.primaryColor,
                     borderRadius: BorderRadius.circular(20)),
                 child: IconButton(
                     onPressed: () async {
                       var loginSnackbar = showNotification(
-                          context, "Authenticating", primaryColor);
+                          context, "Authenticating", MyThemes.primaryColor);
                       await supabase.auth
                           .signInWithPassword(
                         email: userNameController.text,
@@ -177,7 +212,7 @@ class _LoginDemoState extends State<LoginDemo> {
       var customSecondaryColor = value[1];
 
       setState(() {
-        primaryColor = parseColorStringToColor(customPrimaryColor!);
+        MyThemes.primaryColor = parseColorStringToColor(customPrimaryColor!);
         // secondaryColor = parseColorStringToColor(customSecondaryColor!);
       });
     });

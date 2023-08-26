@@ -1,21 +1,12 @@
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:accordion/accordion.dart';
-import 'package:accordion/controllers.dart';
-import 'package:cook_all_you_can/button.dart';
 import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+
+import '../shared/settings/colorpicker/colorpicker.dart';
 
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
@@ -143,7 +134,7 @@ class _ShoppingListState extends State<ShoppingList> {
               children: [
                 Column(children: [
                   FloatingActionButton.extended(
-                      backgroundColor: primaryColor.withOpacity(0.9),
+                      backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
                       shape: roundedRectangleBorder,
                       onPressed: () {
                         showDialog(
@@ -225,7 +216,7 @@ class _ShoppingListState extends State<ShoppingList> {
                 ]),
                 Column(children: [
                   FloatingActionButton.extended(
-                    backgroundColor: primaryColor.withOpacity(0.9),
+                    backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
                     shape: roundedRectangleBorder,
                     onPressed: () {
                       setState(() {
@@ -277,7 +268,8 @@ class _ShoppingListState extends State<ShoppingList> {
 
                       children.add(Text(
                         "Einkaufsliste aus Rezepten",
-                        style: TextStyle(fontSize: 20, color: primaryColor),
+                        style: TextStyle(
+                            fontSize: 20, color: MyThemes.primaryColor),
                       ));
 
                       if (snapshot.hasData) {
@@ -299,7 +291,7 @@ class _ShoppingListState extends State<ShoppingList> {
                                 });
                               }),
                               activeColor: Colors.transparent,
-                              checkColor: primaryColor,
+                              checkColor: MyThemes.primaryColor,
                             ),
                             Text("Zeige zusätzliche Informationen"),
                           ]));
@@ -328,7 +320,7 @@ class _ShoppingListState extends State<ShoppingList> {
                             subtitle: showAdditionalInfo
                                 ? Text(data.recipe_name?.join(",") ?? data.date)
                                 : null,
-                            checkColor: primaryColor,
+                            checkColor: MyThemes.primaryColor,
                             activeColor: Colors.transparent,
                             onChanged: (bool? value) {
                               if (value == true) {
@@ -367,7 +359,8 @@ class _ShoppingListState extends State<ShoppingList> {
                           Divider(color: Colors.white),
                           Text(
                             "Allgemeine Einkaufsliste",
-                            style: TextStyle(fontSize: 20, color: primaryColor),
+                            style: TextStyle(
+                                fontSize: 20, color: MyThemes.primaryColor),
                           ),
                         ])
                       ];
@@ -404,7 +397,7 @@ class _ShoppingListState extends State<ShoppingList> {
                                   data.name, isGeneralShoppingListChecked),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
-                              checkColor: primaryColor,
+                              checkColor: MyThemes.primaryColor,
                               activeColor: Colors.transparent,
                               onChanged: (bool? value) {
                                 if (value == true) {

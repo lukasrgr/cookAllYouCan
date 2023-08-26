@@ -4,6 +4,7 @@
 import 'dart:collection';
 import 'dart:developer';
 
+import 'package:cook_all_you_can/index/overview/shared/settings/colorpicker/colorpicker.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -66,7 +67,7 @@ AppBar getAppBar(BuildContext context, String currentPageTitle) {
       Expanded(
         child: Text(
           currentPageTitle,
-          style: TextStyle(color: primaryColor),
+          style: TextStyle(color: MyThemes.primaryColor),
           overflow: TextOverflow.ellipsis,
         ),
       ),

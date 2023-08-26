@@ -35,3 +35,4 @@ samples, guidance on mobile development, and a full API reference.
     - Comment field on recipe
     - Push Notifications
     - Filter (rating, name, time)
+    - light theme, dark theme, spooky theme: https://proandroiddev.com/how-to-dynamically-change-the-theme-in-flutter-698bd022d0f0

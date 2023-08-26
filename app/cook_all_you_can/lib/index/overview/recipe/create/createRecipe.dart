@@ -379,14 +379,18 @@ class _RecipePopUpState extends State<RecipePopUp> {
   }
 
   void addIngredient(WholeRecipeContent wholeRecipe, int index) {
+    if (wholeRecipe.amount.isEmpty || wholeRecipe.recipeItem.isEmpty) {
+      return;
+    }
+
     ingredientController.add(TextEditingController());
     amountController.add(TextEditingController());
-    defaultUnit.add(wholeRecipe.amount[index].unit.toString());
+    defaultUnit.add(wholeRecipe.amount[index]!.unit.toString());
 
-    ingredientController[index].text = wholeRecipe.recipeItem[index].name;
-    amountController[index].text = (wholeRecipe.amount[index].amount is int
-            ? (wholeRecipe.amount[index].amount as int).toDouble()
-            : wholeRecipe.amount[index].amount)
+    ingredientController[index]!.text = wholeRecipe.recipeItem[index]!.name;
+    amountController[index]!.text = (wholeRecipe.amount[index]!.amount is int
+            ? (wholeRecipe.amount[index]!.amount as int).toDouble()
+            : wholeRecipe.amount[index]!.amount)
         .toString();
 
     ingredients.add(Ingredient("Zutat", "", ""));
@@ -440,120 +444,126 @@ class _RecipePopUpState extends State<RecipePopUp> {
       ];
     }
 
-    await supabase
-        .from(RecipeTable().TABLENAME)
-        .update({
-          'name': generalController[0].text,
-          'prep_time': generalController[1].text,
-          'number_of_people': numberOfPeopleDropdownValue
-        })
-        .eq('id', wholeRecipe.recipe.id)
-        .select('id')
-        .onError((error, stackTrace) => print("no data"))
-        .then((value) async {
-          recipe_id = value[0]['id'];
+    var household;
 
-          for (var i = 0; i < ingredients.length; i++) {
-            var ingredient = ingredientController[i].text;
+    loadDeviceData('household')
+        .then((value) => household = value)
+        .whenComplete(() async => await supabase
+            .from(RecipeTable().TABLENAME)
+            .update({
+              'name': generalController[0].text,
+              'prep_time': generalController[1].text,
+              'number_of_people': numberOfPeopleDropdownValue,
+              'created_from_household': household
+            })
+            .eq('id', wholeRecipe.recipe.id)
+            .select('id')
+            .onError((error, stackTrace) => print("no data"))
+            .then((value) async {
+              recipe_id = value[0]['id'];
 
-            if (wholeRecipe!.recipeItem.length > i &&
-                wholeRecipe!.recipeItem.elementAt(i)?.id != null) {
-              await supabase
-                  .from(RecipeItemTable().TABLENAME)
-                  .update({'name': ingredient})
-                  .match({'id': wholeRecipe.recipeItem[i].id})
-                  .select('id, name')
-                  .then((map) async {
-                    await supabase.from(AmountTable().TABLENAME).update({
-                      'amount': amountController[i].text,
-                      'unit': defaultUnit[i]
-                    }).match({
-                      'recipe_item_id': map[0]['id'],
-                      'recipe_id': recipe_id
-                    });
-                  });
-            } else {
-              await supabase
-                  .from(RecipeItemTable().TABLENAME)
-                  .insert({
-                    'name': ingredient,
-                    'recipe_id': recipe_id,
-                    'importance': null
-                  })
-                  .select('id, name')
-                  .then((map) async {
-                    await supabase.from(AmountTable().TABLENAME).insert({
-                      'recipe_item_id': map[0]['id'],
-                      'recipe_id': recipe_id,
-                      'amount': amountController[i].text,
-                      'unit': defaultUnit[i]
-                    });
-                  });
-            }
-          }
+              for (var i = 0; i < ingredients.length; i++) {
+                var ingredient = ingredientController[i].text;
 
-          if (wholeRecipe.recipeItem.length > ingredients.length) {
-            var difference = wholeRecipe.recipeItem.length - ingredients.length;
-            var reversedRecipeItems =
-                new List.from(wholeRecipe.recipeItem.reversed);
+                if (wholeRecipe!.recipeItem.length > i &&
+                    wholeRecipe!.recipeItem.elementAt(i)?.id != null) {
+                  await supabase
+                      .from(RecipeItemTable().TABLENAME)
+                      .update({'name': ingredient})
+                      .match({'id': wholeRecipe.recipeItem[i].id})
+                      .select('id, name')
+                      .then((map) async {
+                        await supabase.from(AmountTable().TABLENAME).update({
+                          'amount': amountController[i].text,
+                          'unit': defaultUnit[i]
+                        }).match({
+                          'recipe_item_id': map[0]['id'],
+                          'recipe_id': recipe_id
+                        });
+                      });
+                } else {
+                  await supabase
+                      .from(RecipeItemTable().TABLENAME)
+                      .insert({
+                        'name': ingredient,
+                        'recipe_id': recipe_id,
+                        'importance': null
+                      })
+                      .select('id, name')
+                      .then((map) async {
+                        await supabase.from(AmountTable().TABLENAME).insert({
+                          'recipe_item_id': map[0]['id'],
+                          'recipe_id': recipe_id,
+                          'amount': amountController[i].text,
+                          'unit': defaultUnit[i]
+                        });
+                      });
+                }
+              }
 
-            for (var i = 0; i < difference; i++) {
-              await supabase.from(AmountTable().TABLENAME).delete().match({
-                'recipe_item_id': reversedRecipeItems[i].id
-              }).whenComplete(() async => await supabase
-                  .from(RecipeItemTable().TABLENAME)
-                  .delete()
-                  .match({'id': reversedRecipeItems[i].id}));
-            }
-          }
+              if (wholeRecipe.recipeItem.length > ingredients.length) {
+                var difference =
+                    wholeRecipe.recipeItem.length - ingredients.length;
+                var reversedRecipeItems =
+                    new List.from(wholeRecipe.recipeItem.reversed);
+
+                for (var i = 0; i < difference; i++) {
+                  await supabase.from(AmountTable().TABLENAME).delete().match({
+                    'recipe_item_id': reversedRecipeItems[i].id
+                  }).whenComplete(() async => await supabase
+                      .from(RecipeItemTable().TABLENAME)
+                      .delete()
+                      .match({'id': reversedRecipeItems[i].id}));
+                }
+              }
 
 // Recipe manual
-          var recipe_manual_id;
-          await supabase
-              .from('recipe_manual')
-              .update({'steps': manualStepsController.length})
-              .match({'recipe_id': recipe_id})
-              .select('id')
-              .then((map) async {
-                recipe_manual_id = map[0]['id'];
-              });
-
-          for (var i = 0; i < manualSteps.length; i++) {
-            if (wholeRecipe!.recipeManualSteps.length > i &&
-                wholeRecipe!.recipeManualSteps.elementAt(i)?.id != null) {
-              print(wholeRecipe.recipeManualSteps[i].id);
-              // recipe manual steps
-              await supabase.from('recipe_manual_steps').update({
-                'step': manualStepsController[i].text,
-              }).match({
-                'manual_id': recipe_manual_id,
-                'id': wholeRecipe.recipeManualSteps[i].id
-              }).whenComplete(() async {});
-              // });
-            } else {
-              await supabase.from('recipe_manual_steps').insert({
-                'step': manualStepsController[i].text,
-                'manual_id': recipe_manual_id
-              });
-            }
-
-            // TODO shopping list and calendar
-          }
-
-          if (wholeRecipe.recipeManualSteps.length > manualSteps.length) {
-            var difference =
-                wholeRecipe.recipeManualSteps.length - manualSteps.length;
-            var reversedRecipeManualSteps =
-                new List.from(wholeRecipe.recipeManualSteps.reversed);
-
-            for (var i = 0; i < difference; i++) {
+              var recipe_manual_id;
               await supabase
-                  .from('recipe_manual_steps')
-                  .delete()
-                  .match({'id': reversedRecipeManualSteps[i].id});
-            }
-          }
-        });
+                  .from('recipe_manual')
+                  .update({'steps': manualStepsController.length})
+                  .match({'recipe_id': recipe_id})
+                  .select('id')
+                  .then((map) async {
+                    recipe_manual_id = map[0]['id'];
+                  });
+
+              for (var i = 0; i < manualSteps.length; i++) {
+                if (wholeRecipe!.recipeManualSteps.length > i &&
+                    wholeRecipe!.recipeManualSteps.elementAt(i)?.id != null) {
+                  print(wholeRecipe.recipeManualSteps[i].id);
+                  // recipe manual steps
+                  await supabase.from('recipe_manual_steps').update({
+                    'step': manualStepsController[i].text,
+                  }).match({
+                    'manual_id': recipe_manual_id,
+                    'id': wholeRecipe.recipeManualSteps[i].id
+                  }).whenComplete(() async {});
+                  // });
+                } else {
+                  await supabase.from('recipe_manual_steps').insert({
+                    'step': manualStepsController[i].text,
+                    'manual_id': recipe_manual_id
+                  });
+                }
+
+                // TODO shopping list and calendar
+              }
+
+              if (wholeRecipe.recipeManualSteps.length > manualSteps.length) {
+                var difference =
+                    wholeRecipe.recipeManualSteps.length - manualSteps.length;
+                var reversedRecipeManualSteps =
+                    new List.from(wholeRecipe.recipeManualSteps.reversed);
+
+                for (var i = 0; i < difference; i++) {
+                  await supabase
+                      .from('recipe_manual_steps')
+                      .delete()
+                      .match({'id': reversedRecipeManualSteps[i].id});
+                }
+              }
+            }));
   }
 
   Future<void> insertNewRecipe() async {

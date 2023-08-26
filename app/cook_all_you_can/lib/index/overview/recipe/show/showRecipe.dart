@@ -10,6 +10,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mysql_client/mysql_protocol.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../shared/settings/colorpicker/colorpicker.dart';
+
 class WholeRecipeContent {
   Recipe recipe;
   List<RecipeItem> recipeItem = [];
@@ -289,7 +291,8 @@ class ShowRecipeState extends State<ShowRecipe> {
                                   Text(
                                     'Schritt ${x + 1}',
                                     style: TextStyle(
-                                        color: primaryColor, fontSize: 20),
+                                        color: MyThemes.primaryColor,
+                                        fontSize: 20),
                                   ),
                                   Padding(padding: EdgeInsets.only(bottom: 10)),
                                   Text(
@@ -342,13 +345,18 @@ class ShowRecipeState extends State<ShowRecipe> {
                     Padding(
                         padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
                         child: FloatingActionButton.extended(
-                          backgroundColor: primaryColor.withOpacity(0.9),
+                          backgroundColor:
+                              MyThemes.primaryColor.withOpacity(0.9),
                           shape: roundedRectangleBorder,
                           label: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Text("Rezept bearbeiten"),
-                              const Icon(Icons.edit),
+                              Text(
+                                "Rezept bearbeiten",
+                                style:
+                                    TextStyle(color: MyThemes.secondaryColor),
+                              ),
+                              // Icon(Icons.edit, color: secondaryColor),
                             ],
                           ),
                           onPressed: () {

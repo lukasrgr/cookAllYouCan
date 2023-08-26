@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "126297849756",
+    "project_id": "cook-all-you-can",
+    "storage_bucket": "cook-all-you-can.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126297849756:android:2ddc7fdcfc3ad95208d259",
+        "android_client_info": {
+          "package_name": "com.example.cook_all_you_can"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "126297849756-sjtf9im6chor9s7t3ngl3h79o36qt0an.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxvRPG7x5RD-xY3Un1e2cBmdOzmw0cVx4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "126297849756-sjtf9im6chor9s7t3ngl3h79o36qt0an.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

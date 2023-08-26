@@ -56,6 +56,7 @@ dependencies:
   equatable: ^2.0.5
   flex_color_picker: ^3.3.0
   flutter_colorpicker: ^1.0.3
+  flutter_svg: ^2.0.7
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,8 @@ flutter:
   assets:
     - assets/images/logo-branding.png
     - assets/images/logo_with_new_color.png
+    - assets/images/logo_with_new_color.svg
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
