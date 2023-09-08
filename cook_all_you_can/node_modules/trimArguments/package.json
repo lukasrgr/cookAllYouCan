@@ -1,0 +1,13 @@
+{"name":"trimArguments",
+ "version":"1.0.1",
+ "main": "trimArguments.js",
+ "keywords": ["arguments", "args", "varargs"],
+ "dependencies":[],
+ "devDependencies": {
+     "deadunit": "git+https://git@github.com/fresheneesz/deadunit.git"
+ },
+ "repository": {
+   "type": "git",
+   "url": "git://github.com/fresheneesz/trimArguments"
+ }
+}

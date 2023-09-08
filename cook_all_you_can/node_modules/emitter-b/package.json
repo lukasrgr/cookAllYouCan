@@ -1,0 +1,49 @@
+{"name":"emitter-b",
+ "description": "An enhanced EventEmitter with extra methods for detecting whether an event has any handlers or not for efficient event handler attachment.",
+ "keywords": [
+   "event-emitter",
+   "event",
+   "events",
+   "EventEmitter",
+   "EventEmitter2",
+   "EventEmitter3",
+   "EventEmitter4",
+   "EventEmitterB",
+   "javascript",
+   "event driven",
+   "on",
+   "off",
+   "emit",
+   "emits",
+   "emitter",
+   "trigger",
+   "pubsub",
+   "pub/sub",
+   "publish",
+   "subscribe",
+   "listener",
+   "handler",
+   "addEventListener",
+   "addListener"
+ ],
+ "version":"1.0.0",
+ "main": "src/EmitterB.js",
+ "contributors": [
+    "Billy Tetrud <bitetrudpublic@gmail.com> (https://github.com/fresheneesz/)"
+ ],
+ "license": {
+   "name": "MIT",
+   "url": "http://www.opensource.org/licenses/mit-license.php"
+ },
+ "repository": {
+   "type": "git",
+   "url": "git://github.com/Tixit/EventEmitterB"
+ },
+ "dependencies":{
+    "proto": ">=1.0.17"
+ },
+ "devDependencies": {
+    "deadunit":">5.2.0",
+    "build-modules":"2.0.6"
+ }
+}
