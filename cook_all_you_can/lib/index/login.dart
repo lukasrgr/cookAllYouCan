@@ -18,6 +18,9 @@ class LoginDemo extends StatefulWidget {
 class _LoginDemoState extends State<LoginDemo> {
   final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
+  TextEditingController userNameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  late String passwd = "old";
 
   Future<bool> validateDeviceStorage() {
     Future.wait([
@@ -26,6 +29,8 @@ class _LoginDemoState extends State<LoginDemo> {
     ]).then((value) {
       var email = value[0];
       var password = value[1];
+      print(password);
+      passwd = password!;
 
       if (password == null ||
           email == null ||
@@ -53,15 +58,12 @@ class _LoginDemoState extends State<LoginDemo> {
                     });
                   }
                 }),
-                Navigator.popAndPushNamed(context, '/overview')
+                Navigator.popAndPushNamed(context, '/index')
               });
     });
 
     return Future.value(false);
   }
-
-  TextEditingController userNameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
 
   var token = true;
 
@@ -138,6 +140,7 @@ class _LoginDemoState extends State<LoginDemo> {
                       hintText: 'Email in form of abc@gmail.com'),*/
                     ),
               ),
+              Text(passwd),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 15, bottom: 0),

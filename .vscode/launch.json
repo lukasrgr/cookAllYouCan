@@ -6,20 +6,21 @@
     "configurations": [
         {
             "name": "cook_all_you_can",
-            "cwd": "app\\cook_all_you_can",
+            "cwd": "cook_all_you_can",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
         },
         {
             "name": "cook_all_you_can (profile mode)",
-            "cwd": "app\\cook_all_you_can",
+            "cwd": "cook_all_you_can",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "program": "app"
         },
         {
             "name": "cook_all_you_can (release mode)",
-            "cwd": "app\\cook_all_you_can",
+            "cwd": "cook_all_you_can",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

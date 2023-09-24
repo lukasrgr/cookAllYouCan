@@ -14,6 +14,8 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'index/index.dart';
+
 StreamController<bool> isThemeChanging = StreamController();
 
 Future<void> main() async {
@@ -51,6 +53,7 @@ class MyApp extends StatelessWidget {
               '/user': (context) => UserPage(
                     storage: CounterStorage(),
                   ),
+              '/index': (context) => Index(),
             },
           );
         });

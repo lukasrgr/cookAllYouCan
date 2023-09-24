@@ -245,42 +245,6 @@ class _CalendarState extends State<Calendar> {
                                     .whenComplete(() {
                                   snackbar.close();
                                 });
-                                // await supabase
-                                //     .from(RecipeTable().TABLENAME)
-                                //     .select('id')
-                                //     .match({'name': value[index].title}).then(
-                                //         (result) async {
-                                //   id = result[0]['id'];
-                                //   date = DateFormat('yyyy-MM-dd')
-                                //       .format(_selectedDay!);
-
-                                //   await supabase
-                                //       .from(CalendarDayWithEvent().TABLENAME)
-                                //       .delete()
-                                //       .match({'recipe_id': id, 'date': date});
-                                // }).whenComplete(() async {
-
-                                //   setState(() {
-                                //     events[_selectedDay]!.removeWhere(
-                                //         (element) =>
-                                //             element.title ==
-                                //             value[index].title);
-                                //   });
-
-                                // await supabase
-                                //     .from(RecipeItemTable().TABLENAME)
-                                //     .select('name,id')
-                                //     .match({'recipe_id': id}).then((value) {
-                                //   for (var val in value) {
-                                //     print(val);
-                                //   }
-                                // });
-                                // await supabase
-                                //     .from(ShoppingListFromRecipes().TABLENAME)
-                                //     .insert({
-                                //   'recipe_name': value[index].title,
-                                // });
-                                // });
                               }
                             });
                           }));
@@ -408,7 +372,8 @@ class _CalendarState extends State<Calendar> {
     await supabase.from(CalendarDayWithEvent().TABLENAME).insert({
       'recipe_id': recipeId,
       'date': date,
-      'number_of_people': number_of_people
+      'number_of_people': number_of_people,
+      // 'household':
     }).then((value) async {
       await supabase
           .from(RecipeItemTable().TABLENAME)
