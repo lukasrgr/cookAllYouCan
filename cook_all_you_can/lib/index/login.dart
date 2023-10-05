@@ -1,9 +1,12 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'overview/shared/service/service.dart';
 import 'overview/shared/settings/theme/theme.dart';
 
 // import 'HomePage.dart';
@@ -20,7 +23,6 @@ class _LoginDemoState extends State<LoginDemo> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController userNameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  late String passwd = "old";
 
   Future<bool> validateDeviceStorage() {
     Future.wait([
@@ -29,8 +31,6 @@ class _LoginDemoState extends State<LoginDemo> {
     ]).then((value) {
       var email = value[0];
       var password = value[1];
-      print(password);
-      passwd = password!;
 
       if (password == null ||
           email == null ||
@@ -42,24 +42,22 @@ class _LoginDemoState extends State<LoginDemo> {
 // TODO refactor, put in seperate file
       supabase.auth
           .signInWithPassword(email: email, password: password) //
-          .then((value) => {
-                loadDeviceData('household') //
-                    .then((value) async {
-                  if (value == null || value!.length == 0) {
-                    await supabase
-                        .from('user_household')
-                        .select('household_id')
-                        .match({'user_id': supabase.auth.currentUser!.id}) //
-                        .then((user_household) async {
-                      await supabase.from('household').select('text').match({
-                        'id': user_household[0]['household_id']
-                      }).then((household) =>
-                          saveDataOnDevice('household', household[0]['text']));
-                    });
-                  }
-                }),
-                Navigator.popAndPushNamed(context, '/index')
-              });
+          .then((value) async {
+        await supabase
+            .from('user_household')
+            .select('household_id')
+            .match({'user_id': supabase.auth.currentUser!.id}) //
+            .then((user_household) async {
+          await supabase.from('household').select('text').match(
+              {'id': user_household[0]['household_id']}).then((household) {
+            Service.user.setHousehold(
+                household[0]['text'], user_household[0]['household_id']);
+            Service.user.setUserName(email);
+            saveDataOnDevice('household', household[0]['text']);
+          });
+        });
+        Navigator.popAndPushNamed(context, '/index');
+      });
     });
 
     return Future.value(false);
@@ -69,6 +67,7 @@ class _LoginDemoState extends State<LoginDemo> {
 
   void initState() {
     super.initState();
+
     validateDeviceStorage().then((value) => {
           setState(() {
             token = value;
@@ -94,27 +93,14 @@ class _LoginDemoState extends State<LoginDemo> {
                       //padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Column(
                         children: [
-                          SvgPicture.asset(
-                              'assets/images/logo_with_new_color.svg',
-                              colorFilter:
-                                  ColorFilter.mode(Colors.red, BlendMode.srcIn),
-                              semanticsLabel: 'A red up arrow'),
-                          SvgPicture.asset(
-                            'assets/images/logo_with_new_color.svg',
-                            height: 20.0,
-                            width: 20.0,
-                            color: MyThemes.primaryColor,
-                            theme:
-                                SvgTheme(currentColor: MyThemes.primaryColor),
-                            // allowDrawingOutsideViewBox: true,
-                          ),
-                          // Image(
-                          //   image: ('assets/images/logo_with_new_color.svg'),
-                          //   // image: AssetImage(
-                          //   //     'assets/images/logo_with_new_color.svg'),
-                          //   fit: BoxFit.cover,
-                          //   width: 250,
-                          // ),
+                          Image(
+                            image: (AssetImage(
+                                'assets/images/logo_with_new_color.png')),
+                            // image: AssetImage(
+                            //     'assets/images/logo_with_new_color.svg'),
+                            fit: BoxFit.cover,
+                            width: 250,
+                          )
                         ],
                       )),
               Padding(
@@ -125,22 +111,8 @@ class _LoginDemoState extends State<LoginDemo> {
                     autofillHints: [AutofillHints.username],
                     validator: (value) => validateTextForm(value),
                     decoration: ThemedInputDecoration(
-                        'Email', 'Email in form of abc@gmail.com')
-
-                    /*InputDecoration(
-                      fillColor: primaryColor,
-                      hoverColor: primaryColor,
-                      focusColor: primaryColor,
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(width: 3, color: primaryColor),
-                      ),
-                      border: OutlineInputBorder(),
-                      labelText: 'Email',
-                      labelStyle: TextStyle(color: primaryColor),
-                      hintText: 'Email in form of abc@gmail.com'),*/
-                    ),
+                        'Email', 'Email in form of abc@gmail.com')),
               ),
-              Text(passwd),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 15.0, right: 15.0, top: 15, bottom: 0),
@@ -150,13 +122,7 @@ class _LoginDemoState extends State<LoginDemo> {
                     autofillHints: [AutofillHints.password],
                     obscureText: true,
                     validator: (value) => validateTextForm(value),
-                    decoration: ThemedInputDecoration('Password', 'Password')
-
-                    /*InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Password',
-                      hintText: 'Password'),*/
-                    ),
+                    decoration: ThemedInputDecoration('Password', 'Password')),
               ),
               Padding(
                   padding: const EdgeInsets.only(top: 20.0),
@@ -179,11 +145,12 @@ class _LoginDemoState extends State<LoginDemo> {
                       )
                           .then((res) async {
                         if (res.user?.aud == 'authenticated') {
+                          Service.user.setUserName(userNameController.text);
                           loginSnackbar.close();
                           TextInput.finishAutofillContext();
                           saveDataOnDevice("email", userNameController.text);
                           saveDataOnDevice("password", passwordController.text);
-                          Navigator.pushReplacementNamed(context, '/overview');
+                          Navigator.pushReplacementNamed(context, '/index');
                         }
                       }).catchError((error) {
                         loginSnackbar.close();
@@ -213,6 +180,9 @@ class _LoginDemoState extends State<LoginDemo> {
       loadDeviceData("primaryColor"), //
       loadDeviceData("secondaryColor") //
     ]).then((value) {
+      if (value.isEmpty) {
+        return;
+      }
       var customPrimaryColor = value[0];
       var customSecondaryColor = value[1];
 

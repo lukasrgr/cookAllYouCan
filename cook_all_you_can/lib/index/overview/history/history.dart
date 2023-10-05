@@ -117,11 +117,14 @@ class HistoryState extends State<History> {
                                   AsyncSnapshot<List<_ChartData>> snapshot) {
                                 Widget widget = new Container(
                                   child: Center(
-                                      child: ThemedCircularProgressIndicator),
+                                      child: MyThemes
+                                          .ThemedCircularProgressIndicator),
                                 );
 
                                 if (snapshot.hasData) {
                                   widget = SfCartesianChart(
+                                    backgroundColor:
+                                        MyThemes.history.chartBackgroundColor,
                                     // isTransposed: true,
                                     primaryXAxis:
                                         CategoryAxis(isVisible: false),
@@ -149,7 +152,8 @@ class HistoryState extends State<History> {
                                                   style: TextStyle(
                                                       overflow:
                                                           TextOverflow.fade,
-                                                      color: Colors.black,
+                                                      color: MyThemes
+                                                          .history.textColor,
                                                       fontWeight:
                                                           FontWeight.w300,
                                                       fontSize: 15));
@@ -158,7 +162,7 @@ class HistoryState extends State<History> {
                                             isVisible: true),
                                         pointColorMapper:
                                             (_ChartData data, _) =>
-                                                MyThemes.primaryColor,
+                                                MyThemes.history.barColor,
                                         name: 'Rezept',
                                       )
                                     ],

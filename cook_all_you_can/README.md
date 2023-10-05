@@ -42,3 +42,28 @@ samples, guidance on mobile development, and a full API reference.
     - Slidable: (Used for listitem, to interact without popup) https://pub.dev/packages/flutter_slidable
     - flutter native splash: https://pub.dev/packages/flutter_native_splash
     - pull_to_refresh: https://pub.dev/packages/pull_to_refresh
+
+
+     // SvgPicture.asset(
+                          //     'assets/images/logo_with_new_color.svg',
+                          //     colorFilter:
+                          //         ColorFilter.mode(Colors.red, BlendMode.srcIn),
+                          //     semanticsLabel: 'A red up arrow'),
+                          // SvgPicture.asset(
+                          //   'assets/images/logo_with_new_color.svg',
+                          //   height: 20.0,
+                          //   width: 20.0,
+                          //   color: MyThemes.primaryColor,
+                          //   theme:
+                          //       SvgTheme(currentColor: MyThemes.primaryColor),
+                          //   // allowDrawingOutsideViewBox: true,
+                          // ),
+
+- Changing flutter launch icon:
+    - pubspec.yaml -> flutter_launch_icons
+    - flutter pub get
+    - flutter pub pub run flutter_launcher_icons:main
+    - continue
+
+- Improve Performance in web view:
+    - flutter build web --web-renderer canvaskit

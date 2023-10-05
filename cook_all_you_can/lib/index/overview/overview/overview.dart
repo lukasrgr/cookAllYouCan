@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/overview/history/history.dart';
-import 'package:cook_all_you_can/index/overview/recipe/show/showRecipe.dart';
+import 'package:cook_all_you_can/index/overview/overview/recipe/show/showRecipe.dart';
 import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:cook_all_you_can/index/overview/shared/utils.dart';
@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'recipe/create/createRecipe.dart';
-import 'shared/database/table.dart';
+import '../shared/database/table.dart';
 
 class Overview extends StatefulWidget {
   @override
@@ -124,28 +124,30 @@ class _State extends State<Overview> {
                       });
                     }),
                   ));
-                  children.add(Card(
-                      child: SegmentedButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateColor.resolveWith(
-                            (states) => Colors.grey)),
-                    segments: [
-                      ButtonSegment(
-                          value: false,
-                          label: Text(''),
-                          icon: Icon(Icons.list)),
-                      ButtonSegment(
-                          value: true,
-                          label: Text('asdadsa'),
-                          icon: Icon(Icons.view_list)),
-                    ],
-                    selected: Set.of([isDetailedView]),
-                    onSelectionChanged: (newSelection) {
-                      setState(() {
-                        isDetailedView = newSelection.first;
-                      });
-                    },
-                  )));
+
+                  /// TODO listview changer
+                  // children.add(Card(
+                  //     child: SegmentedButton(
+                  //   style: ButtonStyle(
+                  //       backgroundColor: MaterialStateColor.resolveWith(
+                  //           (states) => Colors.grey)),
+                  //   segments: [
+                  //     ButtonSegment(
+                  //         value: false,
+                  //         label: Text(''),
+                  //         icon: Icon(Icons.list)),
+                  //     ButtonSegment(
+                  //         value: true,
+                  //         label: Text('asdadsa'),
+                  //         icon: Icon(Icons.view_list)),
+                  //   ],
+                  //   selected: Set.of([isDetailedView]),
+                  //   onSelectionChanged: (newSelection) {
+                  //     setState(() {
+                  //       isDetailedView = newSelection.first;
+                  //     });
+                  //   },
+                  // )));
 
                   if (snapshot.hasData) {
                     for (var recipe in filteredRecipes) {

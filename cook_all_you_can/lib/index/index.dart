@@ -1,7 +1,6 @@
 import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/overview/history/history.dart';
-import 'package:cook_all_you_can/index/overview/overview.dart';
-import 'package:cook_all_you_can/index/overview/recipe/show/showRecipe.dart';
+import 'package:cook_all_you_can/index/overview/overview/overview.dart';
 import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
 import 'package:cook_all_you_can/index/overview/shared/utils.dart';
@@ -9,40 +8,31 @@ import 'package:cook_all_you_can/index/overview/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'overview/recipe/create/createRecipe.dart';
-import 'overview/shared/database/table.dart';
-
 class Index extends StatefulWidget {
   @override
   _State createState() => _State();
 }
 
 class _State extends State<Index> {
-  List<Ingredient> ingredients = [Ingredient("", "", "")];
-  TextEditingController nameController = TextEditingController();
-  TextEditingController generalController = TextEditingController();
-
-  List<Recipe> recipes = [];
+  // Initial Navigation
   int _selectedIndex = 0;
-  var recipes2;
-  final supabase = Supabase.instance.client;
 
   @override
   initState() {
-    // updateRecipes();
     super.initState();
     updateRecipes();
   }
 
   buildNavigation() {
-    if (_selectedIndex == 0) {
-      return Overview();
-    } else if (_selectedIndex == 1) {
-      return ShoppingList();
-    } else if (_selectedIndex == 2) {
-      return Calendar();
-    } else if (_selectedIndex == 3) {
-      return History();
+    switch (_selectedIndex) {
+      case 0:
+        return Overview();
+      case 1:
+        return ShoppingList();
+      case 2:
+        return Calendar();
+      case 3:
+        return History();
     }
   }
 
@@ -50,26 +40,7 @@ class _State extends State<Index> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
-      // TODO: could be expandable_floating_button
-      // floatingActionButton: FloatingActionButton(
-      //   backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-      //   shape: roundedRectangleBorder,
-      //   onPressed: () => Navigator.of(context)
-      //       .push(
-      //         MaterialPageRoute(
-      //           builder: (context) => RecipePopUp(dummyWholeRecipe),
-      //         ),
-      //       )
-      //       .whenComplete(() => this.updateRecipes()),
-      //   isExtended: true,
-      //   child: Icon(
-      //     Icons.add_outlined,
-      //     color: Colors.black,
-      //   ),
-      // ),
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: getAppBar(context, "Cook All You Can"),
       body: buildNavigation(),
       bottomNavigationBar: BottomNavigationBar(

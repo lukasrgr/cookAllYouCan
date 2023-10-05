@@ -8,7 +8,6 @@ class MyThemes {
   static final defaultPrimaryColor = Color(0xFF81C784);
 
   static var secondaryColor = MyThemes.defaultSecondaryColor;
-
   static final defaultSecondaryColor = Colors.black;
 
   static var customTheme = MyThemes.darkTheme;
@@ -58,4 +57,19 @@ class MyThemes {
         ),
         primarySwatch: kToDark);
   }
+
+  static var ThemedCircularProgressIndicator = Padding(
+      padding: EdgeInsets.symmetric(vertical: 20),
+      child: CircularProgressIndicator(color: MyThemes.primaryColor));
+
+  static HistoryConfig history = new HistoryConfig(
+      Colors.white, primaryColor.withOpacity(1), Colors.grey[850]!);
+}
+
+class HistoryConfig {
+  final Color textColor;
+  final Color barColor;
+  final Color chartBackgroundColor;
+
+  HistoryConfig(this.textColor, this.barColor, this.chartBackgroundColor) {}
 }

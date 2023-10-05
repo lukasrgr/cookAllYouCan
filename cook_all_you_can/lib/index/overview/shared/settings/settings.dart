@@ -117,7 +117,7 @@ class _SettingsState extends State<Settings> {
                   if (!snapshot.hasData) {
                     return Center(
                         child: Column(children: [
-                      globals.ThemedCircularProgressIndicator
+                      MyThemes.ThemedCircularProgressIndicator
                     ]));
                   }
 
