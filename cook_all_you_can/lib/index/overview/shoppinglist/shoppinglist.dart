@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
 import 'package:cook_all_you_can/index/overview/shared/shared.dart';
@@ -6,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
+import '../shared/service/service.dart';
 import '../shared/settings/theme/theme.dart';
 
 class ShoppingList extends StatefulWidget {
@@ -58,7 +61,7 @@ class _ShoppingListState extends State<ShoppingList> {
             'name,amount,unit,shopping_list_from_recipes_id,date,id,status, shopping_list_from_recipes(recipe_name)')
         .gte('date', firstDayOfWeek)
         .lte('date', lastDayOfWeek)
-        .then((value) async {
+        .match({'household_id': Service.user.household_id}).then((value) async {
       for (var val in value) {
         shoppinglist.add(new ShoppingListItemFromRecipe(
             val['shopping_list_from_recipes_id'],
@@ -262,8 +265,9 @@ class _ShoppingListState extends State<ShoppingList> {
 
                       if (!snapshot.hasData) {
                         return Center(
-                            child: Column(
-                                children: [ThemedCircularProgressIndicator]));
+                            child: Column(children: [
+                          MyThemes.ThemedCircularProgressIndicator
+                        ]));
                       }
 
                       children.add(Text(
@@ -366,9 +370,7 @@ class _ShoppingListState extends State<ShoppingList> {
                       ];
 
                       if (!snapshot.hasData) {
-                        return Center(
-                            child: Column(
-                                children: [ThemedCircularProgressIndicator]));
+                        return Center(child: Column());
                       }
 
                       if (snapshot.hasData) {
@@ -531,6 +533,7 @@ class _ShoppingListState extends State<ShoppingList> {
     await supabase
         .from(GeneralShoppingList().TABLENAME)
         .select('id,name,description,status')
+        .match({'household_id': Service.user.household_id})
         .then((value) => {
               value.forEach((element) {
                 isGeneralShoppingListChecked[element['id']] = {
@@ -551,12 +554,15 @@ class _ShoppingListState extends State<ShoppingList> {
   }
 
   Future<void> submitGeneralShoppingList() async {
+    Service.user.household_id;
+    debugger();
     generalController.forEach((element) async {
       await supabase
           .from(GeneralShoppingList().TABLENAME)
           .insert({
             "name": element.text,
             "description": "",
+            "household_id": Service.user.household_id
           })
           .select('id')
           .whenComplete(() {
@@ -577,7 +583,7 @@ class _ShoppingListState extends State<ShoppingList> {
     await supabase
         .from(GeneralShoppingList().TABLENAME)
         .delete()
-        .match({"id": id})
+        .match({"id": id, "household_id": Service.user.household_id})
         .select("id")
         .whenComplete(
             () => this.generalShoppingList = getGeneralShoppingList());

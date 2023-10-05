@@ -4,8 +4,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../overview.dart';
-import '../recipe/show/showRecipe.dart';
+import '../overview/overview.dart';
+import '../overview/recipe/show/showRecipe.dart';
 import 'database/table.dart';
 import 'dart:async';
 import 'dart:io';
@@ -406,9 +406,7 @@ Future<String?> loadDeviceData(String id) async {
 //Incrementing counter after click
 Future<void> saveDataOnDevice(String id, String value) async {
   final prefs = await SharedPreferences.getInstance();
-  // setState(() {
   prefs.setString(id, value);
-  // });
 }
 
 parseColorStringToColor(String? color) {
@@ -441,10 +439,6 @@ const roundedRectangleBorder = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.elliptical(10, 10)));
 const noBorder = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.elliptical(0, 0)));
-
-var ThemedCircularProgressIndicator = Padding(
-    padding: EdgeInsets.symmetric(vertical: 20),
-    child: CircularProgressIndicator(color: MyThemes.primaryColor));
 
 var ThemedInputDecoration =
     (String labelText, String hintText) => InputDecoration(

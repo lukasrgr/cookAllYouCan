@@ -7,7 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../recipe/show/showRecipe.dart';
+import '../overview/recipe/show/showRecipe.dart';
+import '../shared/service/service.dart';
 import '../shared/settings/theme/theme.dart';
 import '../shared/shared.dart';
 import '../shared/utils.dart';
@@ -25,7 +26,7 @@ class _CalendarState extends State<Calendar> {
   var recipes2;
 
   late final ValueNotifier<List<Event>> _selectedEvents;
-  CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
   RangeSelectionMode _rangeSelectionMode = RangeSelectionMode
       .toggledOff; // Can be toggled on/off by longpressing a date
   DateTime _focusedDay = DateTime.now();
@@ -65,10 +66,14 @@ class _CalendarState extends State<Calendar> {
     await supabase
         .from(CalendarDayWithEvent().TABLENAME)
         .select("recipe_id, date")
-        .then((value) async {
+        .match({'household_id': Service.user.household_id}).then((value) async {
       var recipeIds = [];
       for (var x = 0; x < value.length; x++) {
         recipeIds.add(value[x]['recipe_id']);
+      }
+
+      if (recipeIds.isEmpty) {
+        return new Future.value(map[DateTime.now()] = []);
       }
       await supabase
           .from(RecipeTable().TABLENAME)
@@ -124,7 +129,6 @@ class _CalendarState extends State<Calendar> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
     createPopUp();
-    // supabase.from(CalendarDayWithEvent().TABLENAME).insert();
   }
 
   void _onRangeSelected(DateTime? start, DateTime? end, DateTime focusedDay) {
@@ -163,9 +167,13 @@ class _CalendarState extends State<Calendar> {
                 eventLoader: _getEventsForDay,
                 startingDayOfWeek: StartingDayOfWeek.monday,
                 calendarStyle: CalendarStyle(
-                  // Use `CalendarStyle` to customize the UI
-                  outsideDaysVisible: false,
-                ),
+                    // Use `CalendarStyle` to customize the UI
+                    outsideDaysVisible: false,
+                    todayTextStyle: TextStyle(color: MyThemes.primaryColor),
+                    todayDecoration: BoxDecoration(
+                        color: MyThemes.secondaryColor, shape: BoxShape.circle),
+                    selectedDecoration: BoxDecoration(
+                        color: MyThemes.primaryColor, shape: BoxShape.circle)),
                 onDaySelected: _onDaySelected,
                 onRangeSelected: _onRangeSelected,
                 onFormatChanged: (format) {
@@ -179,7 +187,6 @@ class _CalendarState extends State<Calendar> {
                   updateRecipes().then((value) {
                     this.recipes2 = new Future.value(value);
                     this.recipes = value;
-                    // addRecipeToDay(selected);
                   }).whenComplete(
                     () => addRecipeToDay(selectedDay),
                   ),
@@ -202,7 +209,7 @@ class _CalendarState extends State<Calendar> {
               )
             : Center(
                 child: new Column(
-                children: [ThemedCircularProgressIndicator],
+                children: [MyThemes.ThemedCircularProgressIndicator],
               )),
         const SizedBox(height: 8.0),
         Expanded(
@@ -245,42 +252,6 @@ class _CalendarState extends State<Calendar> {
                                     .whenComplete(() {
                                   snackbar.close();
                                 });
-                                // await supabase
-                                //     .from(RecipeTable().TABLENAME)
-                                //     .select('id')
-                                //     .match({'name': value[index].title}).then(
-                                //         (result) async {
-                                //   id = result[0]['id'];
-                                //   date = DateFormat('yyyy-MM-dd')
-                                //       .format(_selectedDay!);
-
-                                //   await supabase
-                                //       .from(CalendarDayWithEvent().TABLENAME)
-                                //       .delete()
-                                //       .match({'recipe_id': id, 'date': date});
-                                // }).whenComplete(() async {
-
-                                //   setState(() {
-                                //     events[_selectedDay]!.removeWhere(
-                                //         (element) =>
-                                //             element.title ==
-                                //             value[index].title);
-                                //   });
-
-                                // await supabase
-                                //     .from(RecipeItemTable().TABLENAME)
-                                //     .select('name,id')
-                                //     .match({'recipe_id': id}).then((value) {
-                                //   for (var val in value) {
-                                //     print(val);
-                                //   }
-                                // });
-                                // await supabase
-                                //     .from(ShoppingListFromRecipes().TABLENAME)
-                                //     .insert({
-                                //   'recipe_name': value[index].title,
-                                // });
-                                // });
                               }
                             });
                           }));
@@ -405,10 +376,13 @@ class _CalendarState extends State<Calendar> {
       int recipeId, int originalNumberOfPeople, String number_of_people) async {
     var date = DateFormat('yyyy-MM-dd').format(dateTime);
 
+    var user = Service.user;
+
     await supabase.from(CalendarDayWithEvent().TABLENAME).insert({
       'recipe_id': recipeId,
       'date': date,
-      'number_of_people': number_of_people
+      'number_of_people': number_of_people,
+      'household_id': user.household_id
     }).then((value) async {
       await supabase
           .from(RecipeItemTable().TABLENAME)
@@ -422,7 +396,8 @@ class _CalendarState extends State<Calendar> {
               'recipe_name': recipe_name,
               'recipe_id': recipeId,
               'amount_of_people': number_of_people,
-              'date': date
+              'date': date,
+              'household_id': Service.user.household_id
             })
             .select('id')
             .then((value) async {
@@ -463,11 +438,10 @@ class _CalendarState extends State<Calendar> {
                           (int.parse(number_of_people) / originalNumberOfPeople)
                               .toDouble(),
                       'unit': shoppingListItem.unit,
-                      'date': date
+                      'date': date,
+                      'household_id': Service.user.household_id
                     });
                   }
-                  ;
-                  print(jsonArray);
 
                   await supabase
                       .from(ShoppingListItems().TABLENAME)
@@ -475,9 +449,6 @@ class _CalendarState extends State<Calendar> {
                 });
               });
             });
-
-        // .whenComplete(() async {
-        // });
       });
       getCalendarEvents().then((events) => {
             setState(() {
@@ -499,10 +470,10 @@ class _CalendarState extends State<Calendar> {
       id = result[0]['id'];
       date = DateFormat('yyyy-MM-dd').format(_selectedDay!);
 
-      await supabase
-          .from(CalendarDayWithEvent().TABLENAME)
-          .delete()
-          .match({'recipe_id': id, 'date': date}).whenComplete(() async {
+      await supabase.from(CalendarDayWithEvent().TABLENAME).delete().match({
+        'recipe_id': id,
+        'date': date,
+      }).whenComplete(() async {
         await supabase
             .from(ShoppingListFromRecipes().TABLENAME)
             .select('id')
@@ -515,7 +486,6 @@ class _CalendarState extends State<Calendar> {
               'shopping_list_from_recipes_id': shopping_list_from_recipe_id[0]
                   ['id']
             }).whenComplete(() async {
-              // sleep(Duration(seconds: 1));
               await supabase
                   .from(ShoppingListFromRecipes().TABLENAME)
                   .delete()

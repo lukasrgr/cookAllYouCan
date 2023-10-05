@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import 'package:cook_all_you_can/index/overview/overview.dart';
-import 'package:cook_all_you_can/index/overview/recipe/show/showRecipe.dart';
+import 'package:cook_all_you_can/index/overview/overview/overview.dart';
+import 'package:cook_all_you_can/index/overview/overview/recipe/show/showRecipe.dart';
 import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
 import 'package:cook_all_you_can/index/overview/shared/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../shared/shared.dart';
+import '../../../shared/shared.dart';
 
 class RecipePopUp extends StatefulWidget {
   late final WholeRecipeContent? wholeRecipe;
