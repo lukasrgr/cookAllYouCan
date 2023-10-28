@@ -1,16 +1,14 @@
-import 'dart:developer';
-
-import 'package:cook_all_you_can/index/overview/overview/recipe/create/createRecipe.dart';
-import 'package:cook_all_you_can/index/overview/overview/overview.dart';
-import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
-import 'package:cook_all_you_can/index/overview/shared/utils.dart';
+import 'package:cook_all_you_can/index/pages/overview/recipe/create/createRecipe.dart';
+import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mysql_client/mysql_protocol.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/pages/shared/service/service.dart'
+    as Service;
 
 class WholeRecipeContent {
   Recipe recipe;
@@ -90,22 +88,65 @@ class ShowRecipeState extends State<ShowRecipe> {
     List<RecipeManualStep> recipeManualSteps = [];
 
     int recipe_id = 0;
+
+    // await supabase
+    //     .from(RecipeTable().TABLENAME)
+    //     .select(
+    //         'name, prep_time, number_of_people,id,created_from_household, recipe_category( category(name, id))')
+    //     .then((value) async {
+    //   for (var i = 0; i < value.length; i++) {
+    //     List<dynamic> category =
+    //         value[i]['recipe_category'].map((el) => el['category']).toList();
+    //     var categoryIds = category.map((el) => el['id'])?.toList() ?? [];
+    //     var categoryNames = category.map((el) => el['name']).toList();
+
+    //     recipes.add(
+    //       Recipe(
+    //           value[i]['name'].toString(),
+    //           value[i]['prep_time'] != null
+    //               ? value[i]['prep_time'].toString() + ' Min.'
+    //               : '-',
+    //           value[i]['rating'] != null ? value[i]['rating'].toString() : '-',
+    //           value[i]['number_of_people'],
+    //           value[i]['created_from_household'],
+    //           value[i]['id'],
+    //           // value[i]['recipe_category'][]
+    //           categoryNames.cast<String>(),
+    //           categoryIds.cast<int>()),
+    //     );
+    //   }
+    // });
     await supabase
         .from(RecipeTable().TABLENAME)
-        .select('name, prep_time, id, number_of_people')
+        .select(
+            'name, prep_time, id, number_of_people,created_from_household,recipe_category( category(name, id))')
         .match({'name': this.recipe_name})
 
         ///
         .then((value) async {
+      var category = value[0]['recipe_category']
+          .map((el) => el['category'])
+          .map((el) => new Service.Category(el['id'], el['name']))
+          .toList();
+      // var categoryIds = category.map((el) => el['id'])?.toList() ?? [];
+      // var categoryNames = category.map((el) => el['name']).toList();
+
       if ((value as List).isEmpty) {
         wholeRecipe2 = new Future.value();
         return;
       }
+
       dropdownValue = value[0]['number_of_people'].toString();
       originalNumberOfPeople = dropdownValue;
       recipe_id = value[0]['id'];
-      recipe = new Recipe(value[0]['name'], value[0]['prep_time'],
-          value[0]['rating'], value[0]['number_of_people'], value[0]['id']);
+      recipe = new Recipe(
+          value[0]['name'],
+          value[0]['prep_time'],
+          value[0]['rating'],
+          value[0]['number_of_people'],
+          value[0]['created_from_household'],
+          value[0]['id'],
+          category);
 
       await supabase
           .from(RecipeItemTable().TABLENAME)
@@ -115,8 +156,6 @@ class ShowRecipeState extends State<ShowRecipe> {
 
           ///
           .then((map) async {
-            inspect(map);
-
             /// Iterate over array
             // List<RecipeItem> ingredients = [];
             for (var i = 0; i < map.length; i++) {
@@ -210,6 +249,7 @@ class ShowRecipeState extends State<ShowRecipe> {
                 builder: (BuildContext context,
                     AsyncSnapshot<WholeRecipeContent> snapshot) {
                   List<DataRow> generalInformation = [];
+                  Widget created_from_household = Container();
 
                   /// TODO: category
                   List<DataRow> ingredients = [];
@@ -233,6 +273,20 @@ class ShowRecipeState extends State<ShowRecipe> {
                     if (snapshot.hasData) {
                       if (wholeRecipe.recipe != null &&
                           wholeRecipe.amount.isNotEmpty) {
+                        // created by
+                        created_from_household = Padding(
+                            padding: EdgeInsets.fromLTRB(0, 30, 10, 10),
+                            child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                      "created by " +
+                                          wholeRecipe
+                                              .recipe.created_from_household,
+                                      style: TextStyle(
+                                          color: MyThemes.primaryColor))
+                                ]));
+
                         generalInformation.add(DataRow(
                           cells: <DataCell>[
                             DataCell(Container(
@@ -376,7 +430,9 @@ class ShowRecipeState extends State<ShowRecipe> {
                               DataColumn(label: Container()),
                               DataColumn(label: Container()),
                             ],
-                            rows: generalInformation),
+                            rows: [
+                              ...generalInformation
+                            ]),
                         DataTable(
                             dataRowHeight: 30,
                             columns: const <DataColumn>[
@@ -429,7 +485,8 @@ class ShowRecipeState extends State<ShowRecipe> {
                         //       ),
                         //     ],
                         //     rows: manualSteps),
-                        ...manualSteps
+                        ...manualSteps,
+                        created_from_household,
                       ])));
                 })));
   }

@@ -2,15 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import 'dart:collection';
-import 'dart:developer';
 
-import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-
-import 'settings/settings.dart';
-import 'user/user.dart';
 
 /// Example event class.
 class Event {

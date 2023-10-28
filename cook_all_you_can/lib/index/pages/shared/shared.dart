@@ -1,28 +1,20 @@
-import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
+import 'dart:async';
+import 'dart:io';
+
+import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../overview/overview.dart';
 import '../overview/recipe/show/showRecipe.dart';
 import 'database/table.dart';
-import 'dart:async';
-import 'dart:io';
-
-List<DropdownMenuItem<String>> get dropdownItems {
-  List<DropdownMenuItem<String>> menuItems = [
-    DropdownMenuItem(child: Text("g"), value: "Gramm"),
-    DropdownMenuItem(child: Text("Stk"), value: "Stück"),
-    DropdownMenuItem(child: Text("l"), value: "Liter"),
-  ];
-  return menuItems;
-}
 
 /// Validator for createRecipe
 String? validateTextForm(String? value) {
   if (value == null || value.isEmpty) {
-    return 'Bitte ausfüllen';
+    return 'Bitte ausfüllen oder Feld entfernen falls möglich';
   }
   return null;
 }
@@ -34,6 +26,7 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
     SnackBar(
         backgroundColor: bgcolor ?? MyThemes.primaryColor,
         content: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Flexible(
                 child: Text(message,
@@ -42,7 +35,6 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showNotification(
                         TextStyle(
                       color: MyThemes.secondaryColor,
                     ))),
-            Spacer(),
             CircularProgressIndicator(color: Colors.black)
           ],
         )),
@@ -97,7 +89,7 @@ Widget buildUnitDropdownMenu(BuildContext context, dynamic dropdownValue,
 
 /* @deprecated */
 WholeRecipeContent dummyWholeRecipe = new WholeRecipeContent(
-    new Recipe("", 0, 0, 0, 0), [], new RecipeManual(0, 0), [], []);
+    new Recipe("", 0, 0, 0, "", 0), [], new RecipeManual(0, 0), [], []);
 
 List<String> unitsForIngredient = <String>[
   'g',
@@ -206,7 +198,7 @@ Future<List<Recipe>> updateRecipes() async {
   List<Recipe> recipes = [];
   await supabase
       .from(RecipeTable().TABLENAME)
-      .select('name, prep_time, number_of_people, id')
+      .select('name, prep_time, number_of_people, id,created_from_household, ')
       .then((value) => {
             for (var i = 0; i < value.length; i++)
               {
@@ -220,6 +212,7 @@ Future<List<Recipe>> updateRecipes() async {
                           ? value[i]['rating'].toString()
                           : '-',
                       value[i]['number_of_people'],
+                      value[i]['created_from_household'],
                       value[i]['id']),
                 )
               }
@@ -322,9 +315,14 @@ class Recipe {
   dynamic prep_time;
   dynamic rating;
   int number_of_people;
+  String created_from_household;
   int id;
-  Recipe(
-      this.name, this.prep_time, this.rating, this.number_of_people, this.id);
+
+  List<Category>? category;
+
+  Recipe(this.name, this.prep_time, this.rating, this.number_of_people,
+      this.created_from_household, this.id,
+      [this.category]);
 }
 
 class RecipeItem {

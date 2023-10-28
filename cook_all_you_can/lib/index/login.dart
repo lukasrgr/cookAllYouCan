@@ -1,13 +1,10 @@
-import 'dart:convert';
-import 'dart:developer';
-
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'overview/shared/service/service.dart';
-import 'overview/shared/settings/theme/theme.dart';
+import 'pages/shared/service/service.dart';
+import 'pages/shared/settings/theme/theme.dart';
 
 // import 'HomePage.dart';
 class LoginDemo extends StatefulWidget {
@@ -89,16 +86,17 @@ class _LoginDemoState extends State<LoginDemo> {
                       child: CircularProgressIndicator(),
                     )
                   : Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.only(bottom: 0),
                       //padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Column(
                         children: [
                           Image(
                             image: (AssetImage(
-                                'assets/images/logo_with_new_color.png')),
+                                'assets/images/logo_with_text.png')),
                             // image: AssetImage(
                             //     'assets/images/logo_with_new_color.svg'),
                             fit: BoxFit.cover,
+                            color: MyThemes.primaryColor,
                             width: 250,
                           )
                         ],

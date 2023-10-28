@@ -4,13 +4,14 @@
 import 'dart:async';
 
 import 'package:cook_all_you_can/index/login.dart';
-import 'package:cook_all_you_can/index/overview/overview/overview.dart';
-import 'package:cook_all_you_can/index/overview/shared/settings/settings.dart';
-import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
-import 'package:cook_all_you_can/index/overview/shared/user/user.dart';
-import 'package:cook_all_you_can/index/overview/shoppinglist/shoppinglist.dart';
+import 'package:cook_all_you_can/index/pages/overview/overview.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/settings.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/user/user.dart';
+import 'package:cook_all_you_can/index/pages/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'index/index.dart';
@@ -38,6 +39,15 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           return MaterialApp(
             title: 'Cook All You Can',
+            localizationsDelegates: [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [
+              Locale('en'), // English
+              Locale('de'), // German
+            ],
             home: LoginDemo(storage: CounterStorage()),
             theme: MyThemes.customTheme,
             initialRoute: '/',

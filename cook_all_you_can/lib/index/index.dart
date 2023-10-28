@@ -1,10 +1,14 @@
-import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
-import 'package:cook_all_you_can/index/overview/history/history.dart';
-import 'package:cook_all_you_can/index/overview/overview/overview.dart';
-import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
-import 'package:cook_all_you_can/index/overview/shared/utils.dart';
-import 'package:cook_all_you_can/index/overview/shoppinglist/shoppinglist.dart';
+import 'dart:developer';
+
+import 'package:cook_all_you_can/index/pages/calendar/calendar.dart';
+import 'package:cook_all_you_can/index/pages/history/history.dart';
+import 'package:cook_all_you_can/index/pages/landing/landingpage.dart';
+import 'package:cook_all_you_can/index/pages/overview/overview.dart';
+import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/utils.dart';
+import 'package:cook_all_you_can/index/pages/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -14,24 +18,29 @@ class Index extends StatefulWidget {
 }
 
 class _State extends State<Index> {
+  final supabase = Supabase.instance.client;
   // Initial Navigation
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
+  late Future<List<String>> category = Future.value([]);
 
   @override
   initState() {
     super.initState();
     updateRecipes();
+    getCategories();
   }
 
   buildNavigation() {
     switch (_selectedIndex) {
       case 0:
-        return Overview();
+        return Home();
       case 1:
-        return ShoppingList();
+        return Overview();
       case 2:
-        return Calendar();
+        return ShoppingList();
       case 3:
+        return Calendar();
+      case 4:
         return History();
     }
   }
@@ -46,11 +55,15 @@ class _State extends State<Index> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.food_bank_outlined),
+            icon: Icon(Icons.abc),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bakery_dining_sharp),
             label: 'Rezepte',
           ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.list), label: 'Einkaufsliste'),
+              icon: Icon(Icons.shopping_cart_outlined), label: 'Einkaufsliste'),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month_outlined),
             label: 'Kalendar',
@@ -63,7 +76,7 @@ class _State extends State<Index> {
         currentIndex: _selectedIndex,
         selectedItemColor: MyThemes.primaryColor,
         onTap: _onItemTapped,
-        backgroundColor: Colors.grey[850],
+        backgroundColor: MyThemes.canvasBackgroundColor,
       ),
     );
   }
@@ -73,5 +86,24 @@ class _State extends State<Index> {
       _selectedIndex = index;
     });
     buildNavigation();
+  }
+
+  void getCategories() async {
+    List<Category> categories = [];
+    await supabase //
+        .from('category') //
+        .select('name, id')
+        .then((list) {
+      for (var value in list) {
+        categories.add(new Category(
+          value['id'],
+          value['name'],
+        ));
+      }
+    });
+
+    setState(() {
+      Service.category = categories;
+    });
   }
 }

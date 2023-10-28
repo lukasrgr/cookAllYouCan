@@ -1,5 +1,6 @@
 class Service {
   static late User user = new User('anon', 'anon', 0);
+  static late List<Category> category = [];
 }
 
 class User {
@@ -16,4 +17,12 @@ class User {
   setUserName(String userName) {
     this.userName = userName;
   }
+}
+
+// Resembles many to many - recipe and category
+class Category {
+  int id;
+  String name;
+
+  Category(this.id, this.name);
 }

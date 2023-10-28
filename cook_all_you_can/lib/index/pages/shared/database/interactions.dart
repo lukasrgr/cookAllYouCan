@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
+import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:mysql_client/mysql_client.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

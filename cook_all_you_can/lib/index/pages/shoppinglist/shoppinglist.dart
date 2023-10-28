@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:cook_all_you_can/index/overview/calendar/calendar.dart';
-import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/calendar/calendar.dart';
+import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -555,7 +555,7 @@ class _ShoppingListState extends State<ShoppingList> {
 
   Future<void> submitGeneralShoppingList() async {
     Service.user.household_id;
-    debugger();
+
     generalController.forEach((element) async {
       await supabase
           .from(GeneralShoppingList().TABLENAME)

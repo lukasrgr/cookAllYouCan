@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
+import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -167,13 +167,16 @@ class _CalendarState extends State<Calendar> {
                 eventLoader: _getEventsForDay,
                 startingDayOfWeek: StartingDayOfWeek.monday,
                 calendarStyle: CalendarStyle(
-                    // Use `CalendarStyle` to customize the UI
-                    outsideDaysVisible: false,
-                    todayTextStyle: TextStyle(color: MyThemes.primaryColor),
-                    todayDecoration: BoxDecoration(
-                        color: MyThemes.secondaryColor, shape: BoxShape.circle),
-                    selectedDecoration: BoxDecoration(
-                        color: MyThemes.primaryColor, shape: BoxShape.circle)),
+                  // Use `CalendarStyle` to customize the UI
+                  outsideDaysVisible: false,
+                  todayTextStyle: TextStyle(color: MyThemes.primaryColor),
+                  todayDecoration: BoxDecoration(
+                      color: MyThemes.secondaryColor, shape: BoxShape.circle),
+                  selectedDecoration: BoxDecoration(
+                      color: MyThemes.primaryColor, shape: BoxShape.circle),
+                  selectedTextStyle:
+                      TextStyle(color: MyThemes.calendar.textColor),
+                ),
                 onDaySelected: _onDaySelected,
                 onRangeSelected: _onRangeSelected,
                 onFormatChanged: (format) {

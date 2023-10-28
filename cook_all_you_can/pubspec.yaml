@@ -49,7 +49,7 @@ dependencies:
   path_provider: ^2.0.15
   shared_preferences: ^2.2.0
   syncfusion_flutter_datepicker: ^22.1.38
-  intl: ^0.18.1
+  intl: any
   syncfusion_flutter_charts: ^22.1.38
   accordion: ^2.5.1
   flutter_material_pickers: ^3.6.0
@@ -58,6 +58,10 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   flutter_svg: ^2.0.7
   flutter_launcher_icons: ^0.13.1
+  flutter_local_notifications: ^16.0.0+1
+  flutter_localizations:
+    sdk: flutter
+  multi_dropdown: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -75,7 +79,7 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 flutter_icons:
-  image_path: "assets/images/logo_with_new_color.png"
+  image_path: "assets/images/new_logo.png"
   android: true
   ios: true
   remove_alpha_ios: true
@@ -94,6 +98,9 @@ flutter:
     - assets/images/logo-branding.png
     - assets/images/logo_with_new_color.png
     - assets/images/logo_with_new_color.svg
+    - assets/images/logo_with_text.png
+    - assets/images/logo_with_text_bg.png
+    - assets/images/new_logo.png
 
   #   - images/a_dot_ham.jpeg
 

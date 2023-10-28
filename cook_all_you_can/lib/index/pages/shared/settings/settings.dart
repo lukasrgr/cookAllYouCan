@@ -2,9 +2,9 @@ import 'dart:developer';
 
 import 'package:accordion/accordion.dart';
 import 'package:accordion/controllers.dart';
-import 'package:cook_all_you_can/index/overview/shared/settings/theme/theme.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart' as globals;
-import 'package:cook_all_you_can/index/overview/shared/utils.dart';
+import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/pages/shared/shared.dart' as globals;
+import 'package:cook_all_you_can/index/pages/shared/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_material_pickers/flutter_material_pickers.dart';

@@ -2,16 +2,13 @@ import 'dart:developer';
 
 import 'package:accordion/accordion.dart';
 import 'package:accordion/controllers.dart';
-import 'package:cook_all_you_can/index/overview/shared/database/table.dart';
-import 'package:cook_all_you_can/index/overview/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import '../shared/service/service.dart';
 
 import '../shared/settings/theme/theme.dart';
-import '../shared/utils.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -39,10 +36,12 @@ class HistoryState extends State<History> {
 
   Future<List<_ChartData>> fillChartData() async {
     List<_ChartData> result = [];
+
     await supabase
         .from(CalendarDayWithEvent().TABLENAME)
         .select('recipe_id,recipe(name)')
-        .then((calendarEvents) {
+        .match({'household_id': Service.user.household_id}).then(
+            (calendarEvents) {
       var map = new Map<String, int?>();
       Map.fromIterable(calendarEvents, key: (e) {
         if (map.containsKey(e['recipe']["name"])) {
@@ -52,10 +51,13 @@ class HistoryState extends State<History> {
           return map[e['recipe']["name"]] = 1;
         }
       });
+      map = Map.fromEntries(map.entries.toList()
+        ..sort((e1, e2) => e1.value!.compareTo(e2.value!)));
 
-      map.forEach((key, value) {
-        result.add(_ChartData(key, value ?? 0));
-      });
+      map
+        ..forEach((key, value) {
+          result.add(_ChartData(key, value ?? 0));
+        });
 
       // return Future.value(result);
     }).whenComplete(() {
@@ -107,7 +109,7 @@ class HistoryState extends State<History> {
                       headerBackgroundColor: Colors.black38,
                       headerBackgroundColorOpened: Colors.black54,
                       contentBackgroundColor: MyThemes.secondaryColor,
-                      header: Text('Wie oft wurde was gekocht ?',
+                      header: Text('Wie oft wurde was gekocht (pro Haushalt)?',
                           style: _headerStyle),
                       content:
                           // ],)
@@ -126,13 +128,11 @@ class HistoryState extends State<History> {
                                     backgroundColor:
                                         MyThemes.history.chartBackgroundColor,
                                     // isTransposed: true,
-                                    primaryXAxis:
-                                        CategoryAxis(isVisible: false),
+                                    primaryXAxis: CategoryAxis(isVisible: true),
                                     primaryYAxis: NumericAxis(
                                         labelStyle: TextStyle(
-                                            overflow: TextOverflow.ellipsis)),
+                                            overflow: TextOverflow.clip)),
                                     tooltipBehavior: _tooltip,
-
                                     series: <ChartSeries<_ChartData, String>>[
                                       BarSeries<_ChartData, String>(
                                         dataSource: snapshot.requireData,
@@ -141,9 +141,9 @@ class HistoryState extends State<History> {
                                         yValueMapper: (_ChartData data, _) =>
                                             data.y,
                                         dataLabelSettings: DataLabelSettings(
-                                            overflowMode: OverflowMode.shift,
+                                            overflowMode: OverflowMode.trim,
                                             labelPosition:
-                                                ChartDataLabelPosition.inside,
+                                                ChartDataLabelPosition.outside,
                                             labelAlignment:
                                                 ChartDataLabelAlignment.bottom,
                                             builder: (dynamic data, _, __, ___,
@@ -151,7 +151,7 @@ class HistoryState extends State<History> {
                                               return Text('${data.x}',
                                                   style: TextStyle(
                                                       overflow:
-                                                          TextOverflow.fade,
+                                                          TextOverflow.ellipsis,
                                                       color: MyThemes
                                                           .history.textColor,
                                                       fontWeight:
@@ -159,7 +159,7 @@ class HistoryState extends State<History> {
                                                       fontSize: 15));
                                               // );
                                             },
-                                            isVisible: true),
+                                            isVisible: false),
                                         pointColorMapper:
                                             (_ChartData data, _) =>
                                                 MyThemes.history.barColor,
@@ -171,7 +171,6 @@ class HistoryState extends State<History> {
                                 return widget;
                               }),
                       contentHorizontalPadding: 20,
-                      // contentBorderColor: Colors.grey,
                     ),
                   ],
                 ),
