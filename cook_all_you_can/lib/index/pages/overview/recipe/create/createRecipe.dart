@@ -643,7 +643,6 @@ class _RecipePopUpState extends State<RecipePopUp> {
               "prep_time": generalController[1]?.text ?? 0,
               'number_of_people': numberOfPeopleDropdownValue,
               "created_from_household": household,
-              'category_ids': categoryController.value
             })
             .select('id')
             .onError((error, stackTrace) => print("no data"))

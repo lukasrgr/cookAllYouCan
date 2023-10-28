@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
@@ -10,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../overview/recipe/show/showRecipe.dart';
 import 'database/table.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Validator for createRecipe
 String? validateTextForm(String? value) {
@@ -373,7 +375,7 @@ class CounterStorage {
     return File('$path/variables.txt');
   }
 
-  Future<String> readCounter() async {
+  Future<String> readCounter(File file) async {
     try {
       final file = await _localFile;
 
@@ -387,23 +389,52 @@ class CounterStorage {
     }
   }
 
-  Future<File> writeCounter(String counter) async {
-    final file = await _localFile;
+  Future<File> write(String filepath, String id) async {
+    final path = await _localPath;
+    final file = new File(path + '/' + filepath + '.txt');
 
     // Write the file
-    return file.writeAsString('$counter');
+    return file.writeAsString('$id');
+  }
+
+  Future<String> read(String filepath) async {
+    // final file = await _localFile;
+    final path = await _localPath;
+    final file = new File(path + '/' + filepath + '.txt');
+
+    // Write the file
+    final contents = await file.readAsString();
+
+    return contents;
   }
 }
 
-//Loading counter value on start
 Future<String?> loadDeviceData(String id) async {
-  final prefs = await SharedPreferences.getInstance();
+  var prefs;
+  // prefs = await SharedPreferences.getInstance().onError((error, stackTrace) {
+  //   // debugger();
+  //   return Future.value();
+  // });
+  // debugger();
+  prefs = await SharedPreferences?.getInstance();
   return prefs.getString(id) ?? null;
 }
 
 //Incrementing counter after click
+Future<void> saveDataOnDevice2(String id, String value) async {
+  // final SharedPreferences prefs =
+  await SharedPreferences.getInstance().onError((error, stackTrace) {
+    debugPrintStack(stackTrace: stackTrace);
+    debugger();
+    throw new Error();
+  });
+  debugger();
+  // await prefs.setString(id, value);
+}
+
 Future<void> saveDataOnDevice(String id, String value) async {
-  final prefs = await SharedPreferences.getInstance();
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
   prefs.setString(id, value);
 }
 

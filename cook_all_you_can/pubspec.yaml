@@ -47,9 +47,8 @@ dependencies:
   settings_ui: ^2.0.2
   flutter_login: ^4.1.1
   path_provider: ^2.0.15
-  shared_preferences: ^2.2.0
   syncfusion_flutter_datepicker: ^22.1.38
-  intl: any
+  intl: ^0.18.0
   syncfusion_flutter_charts: ^22.1.38
   accordion: ^2.5.1
   flutter_material_pickers: ^3.6.0
@@ -62,6 +61,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   multi_dropdown: ^2.1.0
+  shared_preferences: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -73,7 +73,6 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
-  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

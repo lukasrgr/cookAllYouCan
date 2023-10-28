@@ -490,7 +490,6 @@ class _ShoppingListState extends State<ShoppingList> {
   }
 
   Future<void> updateShoppingListItem(String status, List<int> ids) async {
-    final some = await shoppingList;
     ids.forEach((id) async {
       await supabase
           .from(ShoppingListItems().TABLENAME)

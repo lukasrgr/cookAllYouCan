@@ -23,10 +23,51 @@ class _LoginDemoState extends State<LoginDemo> {
   TextEditingController userNameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  Future<bool> validateDeviceStorage() {
+  Future<bool> _validateDeviceStorageOld() {
+//     Future.wait([
+//       loadDeviceData("email"), //
+//       loadDeviceData("password") //
+//     ]).then((value) {
+//       var email = value[0];
+//       var password = value[1];
+
+//       if (password == null ||
+//           email == null ||
+//           password.isEmpty ||
+//           email.isEmpty) {
+//         return false;
+//       }
+
+// // TODO refactor, put in seperate file
+//       supabase.auth
+//           .signInWithPassword(email: email, password: password) //
+//           .then((value) async {
+//         debugger();
+//         await supabase
+//             .from('user_household')
+//             .select('household_id')
+//             .match({'user_id': supabase.auth.currentUser!.id}) //
+//             .then((user_household) async {
+//           await supabase.from('household').select('text').match(
+//               {'id': user_household[0]['household_id']}).then((household) {
+//             Service.user.setHousehold(
+//                 household[0]['text'], user_household[0]['household_id']);
+//             Service.user.setUserName(email);
+//             debugger();
+//             saveDataOnDevice('household', household[0]['text']);
+//           });
+//         });
+//         Navigator.popAndPushNamed(context, '/index');
+//       });
+//     });
+
+    return Future.value(false);
+  }
+
+  Future<bool> _validateDeviceStorage() {
     Future.wait([
-      loadDeviceData("email"), //
-      loadDeviceData("password") //
+      widget.storage.read('password'), //
+      widget.storage.read('email'), //
     ]).then((value) {
       var email = value[0];
       var password = value[1];
@@ -42,7 +83,6 @@ class _LoginDemoState extends State<LoginDemo> {
       supabase.auth
           .signInWithPassword(email: email, password: password) //
           .then((value) async {
-        debugger();
         await supabase
             .from('user_household')
             .select('household_id')
@@ -53,6 +93,7 @@ class _LoginDemoState extends State<LoginDemo> {
             Service.user.setHousehold(
                 household[0]['text'], user_household[0]['household_id']);
             Service.user.setUserName(email);
+            debugger();
             saveDataOnDevice('household', household[0]['text']);
           });
         });
@@ -66,9 +107,16 @@ class _LoginDemoState extends State<LoginDemo> {
   var token = true;
 
   void initState() {
-    super.initState();
+    // super.initState();
 
-    validateDeviceStorage().then((value) => {
+    // _validateDeviceStorage();
+
+    // saveDataOnDevice("", "");
+    // saveDataOnDevice('pw', '');
+    // saveDataOnDevice('emaill', '');
+    // saveDataOnDevice('primaryColorr', '');
+    // saveDataOnDevice('secondaryColorr', '');
+    _validateDeviceStorageOld().then((value) => {
           setState(() {
             token = value;
           })
@@ -149,8 +197,10 @@ class _LoginDemoState extends State<LoginDemo> {
                           Service.user.setUserName(userNameController.text);
                           loginSnackbar.close();
                           TextInput.finishAutofillContext();
-                          saveDataOnDevice("email", userNameController.text);
-                          saveDataOnDevice("password", passwordController.text);
+                          widget.storage
+                              .write("email", userNameController.text);
+                          widget.storage
+                              .write("password", passwordController.text);
                           Navigator.pushReplacementNamed(context, '/index');
                         }
                       }).catchError((error) {

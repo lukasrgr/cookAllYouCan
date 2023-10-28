@@ -16,7 +16,7 @@ class UserPage extends StatefulWidget {
 
 class UserPageState extends State<UserPage> {
   final supabase = Supabase.instance.client;
-  late Future<String?> household = loadDeviceData('household');
+  // late Future<String?> household = loadDeviceData('household');
 
   @override
   void initState() {
@@ -62,20 +62,20 @@ class UserPageState extends State<UserPage> {
                             Text("Haushalt"),
                           ]),
                           Column(children: [
-                            new FutureBuilder(
-                                future: household,
-                                builder: (BuildContext context,
-                                    AsyncSnapshot<dynamic> snapshot) {
-                                  if (!snapshot.hasData) {
-                                    return Text("");
-                                  }
+                            // new FutureBuilder(
+                            //     future: //household,
+                            //     builder: (BuildContext context,
+                            //         AsyncSnapshot<dynamic> snapshot) {
+                            //       if (!snapshot.hasData) {
+                            //         return Text("");
+                            //       }
 
-                                  if (snapshot.hasData) {
-                                    return Text(snapshot.requireData);
-                                  }
+                            //       if (snapshot.hasData) {
+                            //         return Text(snapshot.requireData);
+                            //       }
 
-                                  return Container();
-                                }),
+                            //       return Container();
+                            //     }),
                           ]),
                         ],
                       ),
