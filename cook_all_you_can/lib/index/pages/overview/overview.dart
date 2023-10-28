@@ -269,14 +269,13 @@ class _State extends State<Overview> {
         .from(RecipeTable().TABLENAME)
         .select(
             'name, prep_time, number_of_people,id,created_from_household,recipe_category(id,category(name, id))')
-        .match({'id': 193}).then((value) async {
+        .then((value) async {
       for (var i = 0; i < value.length; i++) {
-        debugger();
-        List<Service.Category> category = [];
-        // value[i]['recipe_category']
-        //     .map((el) => el['category'])
-        //     .toList()
-        //     .map((el) => new Service.Category(el['id'], el['name']));
+        List<dynamic> category = value[i]['recipe_category']
+            .map((el) => el['category'])
+            .toList()
+            .map((el) => new Service.Category(el['id'], el['name']))
+            .toList();
 
         recipes.add(Recipe(
             value[i]['name'].toString(),
@@ -287,8 +286,7 @@ class _State extends State<Overview> {
             value[i]['number_of_people'],
             value[i]['created_from_household'],
             value[i]['id'],
-            category));
-        debugger();
+            category.cast<Service.Category>()));
       }
     });
 

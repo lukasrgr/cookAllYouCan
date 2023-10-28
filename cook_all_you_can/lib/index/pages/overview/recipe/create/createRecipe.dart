@@ -54,9 +54,9 @@ class _RecipePopUpState extends State<RecipePopUp> {
     this.wholeRecipe = wholeRecipe!;
   }
 
-  @override
   void initState() {
     super.initState();
+    // super.initState();
 
     // TODO: find better way to distinguish showRecipe or recipes as previous view
     if (wholeRecipe?.recipe?.id != 0) {
@@ -76,10 +76,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
           .toList();
       categoryController.options.addAll(options ?? []);
 
-      debugger();
       wholeRecipe.recipe.category?.forEach((element) {
-        // categoryController.options
-        //     .add(ValueItem(label: element, value: element));
         categoryController.addSelectedOption(
             ValueItem(label: element.name, value: element.id.toString()));
       });
@@ -107,14 +104,15 @@ class _RecipePopUpState extends State<RecipePopUp> {
     }
   }
 
-  Future<void> submitRecipes() async {
+  Future<void> submitRecipes(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         this._isLoading = true;
       });
 
-      LoadingOverlay.of(context).show();
+      // LoadingOverlay.of(context).show();
 
+      debugger();
       if (isInsertOrUpdateRecipe == 'update') {
         return updateExistingRecipe()
             .whenComplete(() => LoadingOverlay.of(context).hide());
@@ -381,7 +379,8 @@ class _RecipePopUpState extends State<RecipePopUp> {
                                 ]),
                                 ElevatedButton(
                                   onPressed: () {
-                                    submitRecipes();
+                                    LoadingOverlay.of(context).show();
+                                    submitRecipes(context);
                                   },
                                   child: Text("abschicken",
                                       style: TextStyle(
@@ -391,15 +390,6 @@ class _RecipePopUpState extends State<RecipePopUp> {
                         }))
             // )
             ),
-        if (_isLoading)
-          const Opacity(
-            opacity: 0.8,
-            child: ModalBarrier(dismissible: false, color: Colors.black),
-          ),
-        if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(),
-          ),
       ],
     );
   }
@@ -522,14 +512,15 @@ class _RecipePopUpState extends State<RecipePopUp> {
             'name': generalController[0].text,
             'prep_time': generalController[1].text,
             'number_of_people': numberOfPeopleDropdownValue,
-            'created_from_household': household,
-            'category_ids': categoryController.value
+            'created_from_household': household
           })
           .eq('id', wholeRecipe.recipe.id)
           .select('id')
           .onError((error, stackTrace) => print("no data"))
           .then((value) async {
             recipe_id = value[0]['id'];
+
+            await insertCategories(recipe_id);
 
             for (var i = 0; i < ingredients.length; i++) {
               var ingredient = ingredientController[i].text;
@@ -635,7 +626,7 @@ class _RecipePopUpState extends State<RecipePopUp> {
           });
     });
 
-    insertCategories(recipe_id);
+    debugger();
   }
 
   Future<void> insertNewRecipe() async {
@@ -770,7 +761,16 @@ class _RecipePopUpState extends State<RecipePopUp> {
     });
 
     await supabase
-        .from('recipe_category') //
-        .insert(insert);
+        .from('recipe_category')
+        .delete()
+        .eq('recipe_id', recipe_id)
+        .select()
+        .then((value) async {
+          await supabase
+              .from('recipe_category') //
+              .insert(insert);
+        })
+        .whenComplete(() => Future.value())
+        .onError((error, stackTrace) => Future.value());
   }
 }

@@ -198,7 +198,7 @@ Future<List<Recipe>> updateRecipes() async {
   List<Recipe> recipes = [];
   await supabase
       .from(RecipeTable().TABLENAME)
-      .select('name, prep_time, number_of_people, id,created_from_household, ')
+      .select('name, prep_time, number_of_people, id,created_from_household')
       .then((value) => {
             for (var i = 0; i < value.length; i++)
               {

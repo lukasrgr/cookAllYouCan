@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cook_all_you_can/index/pages/overview/recipe/create/createRecipe.dart';
 import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
@@ -126,6 +128,7 @@ class ShowRecipeState extends State<ShowRecipe> {
         .then((value) async {
       var category = value[0]['recipe_category']
           .map((el) => el['category'])
+          .toList()
           .map((el) => new Service.Category(el['id'], el['name']))
           .toList();
       // var categoryIds = category.map((el) => el['id'])?.toList() ?? [];
@@ -146,7 +149,7 @@ class ShowRecipeState extends State<ShowRecipe> {
           value[0]['number_of_people'],
           value[0]['created_from_household'],
           value[0]['id'],
-          category);
+          category.cast<Service.Category>());
 
       await supabase
           .from(RecipeItemTable().TABLENAME)

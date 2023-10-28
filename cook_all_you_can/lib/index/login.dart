@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,6 +42,7 @@ class _LoginDemoState extends State<LoginDemo> {
       supabase.auth
           .signInWithPassword(email: email, password: password) //
           .then((value) async {
+        debugger();
         await supabase
             .from('user_household')
             .select('household_id')
