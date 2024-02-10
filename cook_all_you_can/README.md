@@ -16,10 +16,8 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 - TODO's:
-    - Filter for recipes
     - Pagination
     - Nutrition score
-    - Fulltextsearch
     - Elastic Search
     - Categories
     - Readjust recipes list
@@ -27,14 +25,20 @@ samples, guidance on mobile development, and a full API reference.
     - add image to recipe
     - refresh possibility
     - Change queries to GraphiQL
-    - editRecipe
     - expandable for shoppinglist[s]
-    - zutaten alle in eine liste und automatische Trennung
-    - Github Pages
-    - Rating, specific for households
     - Comment field on recipe
     - Push Notifications
-    - Filter (rating, name, time)
+
+    * DONE:
+        - Github Pages (improve performance)
+        - editRecipe
+        - Fulltextsearch
+
+    * Backlog:
+        - Filter (rating, name, time)
+        - zutaten alle in eine liste und automatische Trennung
+        - Rating, specific for households
+        - Demo-Login
 
 - Features:
     - Animations: https://pub.dev/packages/animations
@@ -67,3 +71,5 @@ samples, guidance on mobile development, and a full API reference.
 
 - Improve Performance in web view:
     - flutter build web --web-renderer canvaskit
+
+new logo: flutter pub pub run flutter_launcher_icons:main
