@@ -6,35 +6,94 @@ enum MyThemeKeys { LIGHT, DARK }
 class MyThemes {
   static var primaryColor = MyThemes.defaultPrimaryColor;
   static final defaultPrimaryColor = Color.fromRGBO(129, 199, 132, 1);
-
   static var secondaryColor = MyThemes.defaultSecondaryColor;
   static final defaultSecondaryColor = Colors.black;
 
   static final canvasBackgroundColor = Colors.grey[850];
+  static final textColor = Colors.white;
 
   static var customTheme = MyThemes.darkTheme;
   static final ThemeData darkTheme = ThemeData(
+    appBarTheme: AppBarTheme(backgroundColor: MyThemes.canvasBackgroundColor),
+    textTheme: TextTheme(
+        // Used in material 3 for input color
+        bodyLarge: TextStyle(color: textColor)),
+    //
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      elevation: 10,
+    ),
+    //
+    listTileTheme: ListTileThemeData(
+        textColor: Colors.white,
+        iconColor: Colors.white,
+        tileColor: canvasBackgroundColor?.withOpacity(0.9)),
+    //
+    scaffoldBackgroundColor: canvasBackgroundColor,
+    brightness: Brightness.dark,
+    canvasColor: canvasBackgroundColor,
+    //
+    colorScheme: ColorScheme.fromSwatch().copyWith(
+      primary: primaryColor,
+      secondary: primaryColor.withOpacity(0.5),
+      // secondary: const Colors.yellow.shade700,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSwatch().copyWith(
-        primary: primaryColor,
-        secondary: primaryColor.withOpacity(0.5),
-        // secondary: const Colors.yellow.shade700,
-        brightness: Brightness.dark,
-      ),
-      dataTableTheme: DataTableThemeData(
-          // dataTextStyle: TextStyle(color: primaryColor),
-          ),
-      primarySwatch: kToDark,
-      searchBarTheme: SearchBarThemeData(
-        backgroundColor:
-            MaterialStateColor.resolveWith((states) => Colors.black),
-        textStyle: MaterialStateProperty.resolveWith(
-            (states) => TextStyle(color: Colors.white)),
+    ),
+    //
+    cardColor: canvasBackgroundColor,
+    cardTheme: CardTheme(
+        color: canvasBackgroundColor,
+        shadowColor: primaryColor,
+        clipBehavior: Clip.hardEdge,
+        elevation: 10.0,
+        shape: RoundedRectangleBorder()),
+    //
+    checkboxTheme: CheckboxThemeData(side: BorderSide(color: primaryColor)),
+    //
+    inputDecorationTheme: InputDecorationTheme(
+      iconColor: Colors.white,
+      counterStyle: TextStyle(color: primaryColor),
+      helperStyle: TextStyle(color: Colors.white),
+      isDense: true,
+      border: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.white, width: 0.0)),
+    ),
+    //
+    dataTableTheme: DataTableThemeData(
+      dataTextStyle: TextStyle(color: primaryColor),
+    ),
+    //
+    iconButtonTheme: IconButtonThemeData(
+        style: ButtonStyle(
+      iconColor: MaterialStateColor.resolveWith((states) => Colors.white),
+    )),
+    //
+    iconTheme: IconThemeData(color: Colors.white),
+    primarySwatch: kToDark,
+    //
+    searchBarTheme: SearchBarThemeData(
+      surfaceTintColor: MaterialStateColor.resolveWith(
+          (states) => MyThemes.canvasBackgroundColor!.withOpacity(0.5)),
+      // overlayColor: MaterialStateColor.resolveWith(
+      //     (states) => MyThemes.canvasBackgroundColor!),
+      backgroundColor: MaterialStateColor.resolveWith(
+          (states) => MyThemes.canvasBackgroundColor!.withOpacity(0.5)),
+      textStyle: MaterialStateProperty.resolveWith(
+          (states) => TextStyle(color: Colors.white)),
 
-        // textStyle: MaterialStateProperty.resolveWith(
-        //     (states) => TextStyle(color: Colors.green)) //
-      ) //
-      );
+      // textStyle: MaterialStateProperty.resolveWith(
+      //     (states) => TextStyle(color: Colors.green)) //
+    ),
+    //
+    datePickerTheme: DatePickerThemeData(backgroundColor: Colors.yellow),
+    dropdownMenuTheme:
+        DropdownMenuThemeData(textStyle: TextStyle(color: Colors.white)),
+    //
+    // textButtonTheme: TextButtonThemeData(
+    //     style: ButtonStyle(
+    //   backgroundColor:
+    //       MaterialStateProperty.resolveWith((states) => Colors.white),
+    // ))
+  );
 
   static final ThemeData lightTheme = ThemeData(
     primaryColor: Colors.grey,
@@ -68,6 +127,28 @@ class MyThemes {
       Colors.white, primaryColor.withOpacity(1), Colors.grey[850]!);
 
   static CalendarConfig calendar = new CalendarConfig(Colors.black);
+
+  static final roundedRectangleBorder = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.elliptical(10, 10)));
+  static final noBorder = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.elliptical(0, 0)));
+
+  static final ThemedInputDecoration = (String labelText, String hintText) =>
+      InputDecoration(
+          fillColor: MyThemes.primaryColor,
+          hoverColor: MyThemes.primaryColor,
+          focusColor: MyThemes.primaryColor,
+          enabledBorder: OutlineInputBorder(
+              borderSide:
+                  BorderSide(color: MyThemes.primaryColor.withOpacity(0.5))),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(width: 3, color: MyThemes.primaryColor),
+          ),
+          border:
+              OutlineInputBorder(borderSide: BorderSide(color: Colors.green)),
+          labelText: labelText,
+          labelStyle: TextStyle(color: MyThemes.primaryColor),
+          hintText: hintText);
 }
 
 class HistoryConfig {

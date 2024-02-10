@@ -71,3 +71,5 @@ samples, guidance on mobile development, and a full API reference.
 
 - Improve Performance in web view:
     - flutter build web --web-renderer canvaskit
+
+new logo: flutter pub pub run flutter_launcher_icons:main

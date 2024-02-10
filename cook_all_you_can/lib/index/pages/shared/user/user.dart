@@ -1,3 +1,7 @@
+import 'dart:developer';
+
+import 'package:cook_all_you_can/index/pages/shared/database/sqflite/query.dart';
+import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -16,7 +20,6 @@ class UserPage extends StatefulWidget {
 
 class UserPageState extends State<UserPage> {
   final supabase = Supabase.instance.client;
-  // late Future<String?> household = loadDeviceData('household');
 
   @override
   void initState() {
@@ -61,22 +64,9 @@ class UserPageState extends State<UserPage> {
                           Column(children: [
                             Text("Haushalt"),
                           ]),
-                          Column(children: [
-                            // new FutureBuilder(
-                            //     future: //household,
-                            //     builder: (BuildContext context,
-                            //         AsyncSnapshot<dynamic> snapshot) {
-                            //       if (!snapshot.hasData) {
-                            //         return Text("");
-                            //       }
-
-                            //       if (snapshot.hasData) {
-                            //         return Text(snapshot.requireData);
-                            //       }
-
-                            //       return Container();
-                            //     }),
-                          ]),
+                          Column(
+                            children: [Text(Service.user.household)],
+                          )
                         ],
                       ),
                     ),
@@ -87,20 +77,17 @@ class UserPageState extends State<UserPage> {
                   children: <Widget>[
                     const SizedBox(width: 8),
                     TextButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith(
+                              (states) => Colors.white)),
                       child: Text(
                         'LOGOUT',
                         style: TextStyle(color: MyThemes.primaryColor),
                       ),
                       onPressed: () async {
                         var snackbar = showNotification(context, "Logging out");
-                        await supabase.auth.signOut().whenComplete(() {
-                          saveDataOnDevice("email", "");
-                          saveDataOnDevice("password", "");
-                          saveDataOnDevice("household", "");
-                          snackbar.close();
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, '/login', ModalRoute.withName('/'));
-                        });
+                        await logout();
+                        snackbar.close();
                       },
                     ),
                   ],
@@ -189,5 +176,23 @@ class UserPageState extends State<UserPage> {
         //   ],
         // )
         );
+  }
+
+  logout() async {
+    var user = supabase.auth.currentSession;
+    if (user != null) {
+      // User is authenticated, proceed with logout
+      supabase.auth.signOut();
+    } else {
+      // User is not authenticated
+      // console.log("User is not authenticated.");
+
+      debugger();
+    }
+
+    await supabase.auth.signOut();
+    Navigator.pushNamedAndRemoveUntil(
+        context, '/login', ModalRoute.withName('/'));
+    await SqfLiteHandler.deleteUser(0);
   }
 }

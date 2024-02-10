@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../overview/recipe/show/showRecipe.dart';
+import '../overview/recipe/show/show.dart';
 import 'database/table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -409,16 +409,16 @@ class CounterStorage {
   }
 }
 
-Future<String?> loadDeviceData(String id) async {
-  var prefs;
-  // prefs = await SharedPreferences.getInstance().onError((error, stackTrace) {
-  //   // debugger();
-  //   return Future.value();
-  // });
-  // debugger();
-  prefs = await SharedPreferences?.getInstance();
-  return prefs.getString(id) ?? null;
-}
+// Future<String?> loadDeviceData(String id) async {
+//   var prefs;
+//   // prefs = await SharedPreferences.getInstance().onError((error, stackTrace) {
+//   //   // debugger();
+//   //   return Future.value();
+//   // });
+//   // debugger();
+//   prefs = await SharedPreferences?.getInstance();
+//   return prefs.getString(id) ?? null;
+// }
 
 //Incrementing counter after click
 Future<void> saveDataOnDevice2(String id, String value) async {
@@ -432,11 +432,11 @@ Future<void> saveDataOnDevice2(String id, String value) async {
   // await prefs.setString(id, value);
 }
 
-Future<void> saveDataOnDevice(String id, String value) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
-  prefs.setString(id, value);
-}
+// Future<void> saveDataOnDevice(String id, String value) async {
+//   final SharedPreferences prefs = await SharedPreferences.getInstance();
+//   await prefs.clear();
+//   prefs.setString(id, value);
+// }
 
 parseColorStringToColor(String? color) {
   if (color!.length == 0) {
@@ -463,24 +463,6 @@ const MaterialColor kToDark = const MaterialColor(
     900: const Color(0xff000000), //100%
   },
 );
-
-const roundedRectangleBorder = RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.elliptical(10, 10)));
-const noBorder = RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.elliptical(0, 0)));
-
-var ThemedInputDecoration =
-    (String labelText, String hintText) => InputDecoration(
-        fillColor: MyThemes.primaryColor,
-        hoverColor: MyThemes.primaryColor,
-        focusColor: MyThemes.primaryColor,
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(width: 3, color: MyThemes.primaryColor),
-        ),
-        border: OutlineInputBorder(),
-        labelText: labelText,
-        labelStyle: TextStyle(color: MyThemes.primaryColor),
-        hintText: hintText);
 
 /// Flutter code sample for [SearchBar].
 

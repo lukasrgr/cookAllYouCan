@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:cook_all_you_can/index/pages/overview/recipe/create/createRecipe.dart';
+import 'package:cook_all_you_can/index/pages/overview/recipe/create/create.dart';
 import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:cook_all_you_can/index/pages/shared/utils.dart';
@@ -229,10 +229,11 @@ class ShowRecipeState extends State<ShowRecipe> {
 
     // Build a Form widget using the _formKey created above.
     return Scaffold(
+        backgroundColor: MyThemes.canvasBackgroundColor,
         floatingActionButtonLocation: FloatingActionButtonLocation.miniEndTop,
         floatingActionButton: FloatingActionButton(
           backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-          shape: roundedRectangleBorder,
+          shape: MyThemes.roundedRectangleBorder,
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -421,76 +422,79 @@ class ShowRecipeState extends State<ShowRecipe> {
                   }
                   return Center(
                       child: Card(
+                          color: MyThemes.canvasBackgroundColor,
+                          surfaceTintColor: MyThemes.canvasBackgroundColor,
                           child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                        DataTable(
-                            headingRowHeight: 0,
-                            dividerThickness: 0.0,
-                            columns: <DataColumn>[
-                              DataColumn(label: Container()),
-                              DataColumn(label: Container()),
-                              DataColumn(label: Container()),
-                            ],
-                            rows: [
-                              ...generalInformation
-                            ]),
-                        DataTable(
-                            dataRowHeight: 30,
-                            columns: const <DataColumn>[
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    'Zutaten',
-                                    style:
-                                        TextStyle(fontStyle: FontStyle.italic),
-                                  ),
-                                ),
-                              ),
-                              DataColumn(
-                                label: Expanded(
-                                  child: Text(
-                                    '',
-                                  ),
-                                ),
-                              ),
-                            ],
-                            rows: ingredients),
+                                DataTable(
+                                    headingRowHeight: 0,
+                                    dividerThickness: 0.0,
+                                    columns: <DataColumn>[
+                                      DataColumn(label: Container()),
+                                      DataColumn(label: Container()),
+                                      DataColumn(label: Container()),
+                                    ],
+                                    rows: [
+                                      ...generalInformation
+                                    ]),
+                                DataTable(
+                                    dataRowHeight: 30,
+                                    columns: <DataColumn>[
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text(
+                                            'Zutaten',
+                                            style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: MyThemes.textColor),
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text(
+                                            '',
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    rows: ingredients),
 
-                        // Container(
-                        //     width: mediaQuery.size.width * 0.5,
-                        //     child: DataTable(
-                        //         dataRowHeight: 60,
-                        //         columns: const <DataColumn>[
-                        //           DataColumn(
-                        //             // SizedBox(
-                        //             // width: mediaQuery.size.width * 1,
-                        //             // child: manualSteps,
-                        //             // ),
-                        //             label: Text(
-                        //               'Schritte',
-                        //               style: TextStyle(fontStyle: FontStyle.italic),
-                        //             ),
-                        //           ),
-                        //         ],
-                        //         rows: manualSteps)),
-                        // DataTable(
-                        //     dataRowHeight: 60,
-                        //     columns: const <DataColumn>[
-                        //       DataColumn(
-                        //         label: Expanded(
-                        //           child: Text(
-                        //             'Schritte',
-                        //             style: TextStyle(fontStyle: FontStyle.italic),
-                        //           ),
-                        //         ),
-                        //       ),
-                        //     ],
-                        //     rows: manualSteps),
-                        ...manualSteps,
-                        created_from_household,
-                      ])));
+                                // Container(
+                                //     width: mediaQuery.size.width * 0.5,
+                                //     child: DataTable(
+                                //         dataRowHeight: 60,
+                                //         columns: const <DataColumn>[
+                                //           DataColumn(
+                                //             // SizedBox(
+                                //             // width: mediaQuery.size.width * 1,
+                                //             // child: manualSteps,
+                                //             // ),
+                                //             label: Text(
+                                //               'Schritte',
+                                //               style: TextStyle(fontStyle: FontStyle.italic),
+                                //             ),
+                                //           ),
+                                //         ],
+                                //         rows: manualSteps)),
+                                // DataTable(
+                                //     dataRowHeight: 60,
+                                //     columns: const <DataColumn>[
+                                //       DataColumn(
+                                //         label: Expanded(
+                                //           child: Text(
+                                //             'Schritte',
+                                //             style: TextStyle(fontStyle: FontStyle.italic),
+                                //           ),
+                                //         ),
+                                //       ),
+                                //     ],
+                                //     rows: manualSteps),
+                                ...manualSteps,
+                                created_from_household,
+                              ])));
                 })));
   }
 

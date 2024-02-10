@@ -35,7 +35,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> changePrimaryColor(Color color) async {
-    globals.saveDataOnDevice("primaryColor", MyThemes.primaryColor.toString());
+    // globals.saveDataOnDevice("primaryColor", MyThemes.primaryColor.toString());
     setState(() => {
           MyThemes.primaryColor = color,
           isThemeChanging.add(true),
@@ -45,7 +45,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> changeSecondaryColor(Color color) async {
-    globals.saveDataOnDevice("secondary", MyThemes.secondaryColor.toString());
+    // globals.saveDataOnDevice("secondary", MyThemes.secondaryColor.toString());
     setState(() => {
           MyThemes.secondaryColor = color,
           isThemeChanging.add(true),
@@ -65,7 +65,7 @@ class _SettingsState extends State<Settings> {
               child: ColorPicker(
             pickerColor: MyThemes.primaryColor,
             onColorChanged: (value) {
-              globals.saveDataOnDevice(id, MyThemes.primaryColor.toString());
+              // globals.saveDataOnDevice(id, MyThemes.primaryColor.toString());
               callback(value);
             },
           )),
@@ -167,8 +167,8 @@ class _SettingsState extends State<Settings> {
                                                     MyThemes.primaryColor =
                                                         MyThemes
                                                             .defaultPrimaryColor,
-                                                    globals.saveDataOnDevice(
-                                                        "primaryColor", "")
+                                                    // globals.saveDataOnDevice(
+                                                    //     "primaryColor", "")
                                                   }));
                                           ;
                                         })),
@@ -196,8 +196,8 @@ class _SettingsState extends State<Settings> {
                                                     MyThemes.secondaryColor =
                                                         MyThemes
                                                             .defaultSecondaryColor,
-                                                    globals.saveDataOnDevice(
-                                                        "secondaryColor", "")
+                                                    // globals.saveDataOnDevice(
+                                                    //     "secondaryColor", "")
                                                   }));
                                         }))
                               ])),

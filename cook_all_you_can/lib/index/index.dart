@@ -17,26 +17,25 @@ class Index extends StatefulWidget {
 class _State extends State<Index> {
   final supabase = Supabase.instance.client;
   // Initial Navigation
-  int _selectedIndex = 1;
-  late Future<List<String>> category = Future.value([]);
+  int _selectedIndex = 0;
+  late Future<List<String>> category; // = Future.value([]);
 
   @override
   initState() {
     super.initState();
-    // updateRecipes();
   }
 
   buildNavigation() {
     switch (_selectedIndex) {
+      // case 0:
+      //   return Home();
       case 0:
-        return Home();
-      case 1:
         return Overview();
-      case 2:
+      case 1:
         return ShoppingList();
-      case 3:
+      case 2:
         return Calendar();
-      case 4:
+      case 3:
         return History();
     }
   }
@@ -50,10 +49,10 @@ class _State extends State<Index> {
       body: buildNavigation(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.abc),
-            label: 'Home',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.abc),
+          //   label: 'Home',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bakery_dining_sharp),
             label: 'Rezepte',
@@ -84,22 +83,22 @@ class _State extends State<Index> {
     buildNavigation();
   }
 
-  void getCategories() async {
-    List<Category> categories = [];
-    await supabase //
-        .from('category') //
-        .select('name, id')
-        .then((list) {
-      for (var value in list) {
-        categories.add(new Category(
-          value['id'],
-          value['name'],
-        ));
-      }
-    });
+  // void getCategories() async {
+  //   List<Category> categories = [];
+  //   await supabase //
+  //       .from('category') //
+  //       .select('name, id')
+  //       .then((list) {
+  //     for (var value in list) {
+  //       categories.add(new Category(
+  //         value['id'],
+  //         value['name'],
+  //       ));
+  //     }
+  //   });
 
-    setState(() {
-      Service.category = categories;
-    });
-  }
+  //   // setState(() {
+  //   Service.category = categories;
+  //   // });
+  // }
 }

@@ -138,12 +138,14 @@ class _ShoppingListState extends State<ShoppingList> {
                 Column(children: [
                   FloatingActionButton.extended(
                       backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-                      shape: roundedRectangleBorder,
+                      shape: MyThemes.roundedRectangleBorder,
                       onPressed: () {
                         showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(
+                                  backgroundColor:
+                                      MyThemes.canvasBackgroundColor,
                                   title: Text(''),
                                   content: Container(
                                     width: MediaQuery.of(context).size.width,
@@ -152,7 +154,16 @@ class _ShoppingListState extends State<ShoppingList> {
                                     child: Column(
                                       children: <Widget>[
                                         SfDateRangePicker(
-                                          backgroundColor: Colors.transparent,
+                                          // startRangeSelectionColor:
+                                          // MyThemes.canvasBackgroundColor,
+                                          // backgroundColor: Colors.black,
+                                          rangeSelectionColor: MyThemes
+                                              .primaryColor
+                                              .withOpacity(0.5),
+                                          rangeTextStyle: TextStyle(
+                                              color: MyThemes.textColor),
+                                          selectionTextStyle:
+                                              TextStyle(color: Colors.black),
                                           todayHighlightColor: Colors.white,
                                           headerStyle:
                                               DateRangePickerHeaderStyle(
@@ -220,7 +231,7 @@ class _ShoppingListState extends State<ShoppingList> {
                 Column(children: [
                   FloatingActionButton.extended(
                     backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-                    shape: roundedRectangleBorder,
+                    shape: MyThemes.roundedRectangleBorder,
                     onPressed: () {
                       setState(() {
                         var snackbar = showNotification(
@@ -432,11 +443,11 @@ class _ShoppingListState extends State<ShoppingList> {
                               ),
                               Flexible(
                                   child: TextFormField(
+                                      style: TextStyle(color: Colors.white),
                                       controller: generalController[x],
-                                      decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Item',
-                                          isDense: true),
+                                      decoration:
+                                          MyThemes.ThemedInputDecoration(
+                                              "Item", ""),
                                       validator: (value) =>
                                           validateTextForm(value))),
                               IconButton(

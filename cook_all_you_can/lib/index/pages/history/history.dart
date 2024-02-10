@@ -128,10 +128,12 @@ class HistoryState extends State<History> {
                                     backgroundColor:
                                         MyThemes.history.chartBackgroundColor,
                                     // isTransposed: true,
-                                    primaryXAxis: CategoryAxis(isVisible: true),
+                                    primaryXAxis: CategoryAxis(
+                                      isVisible: true,
+                                    ),
                                     primaryYAxis: NumericAxis(
                                         labelStyle: TextStyle(
-                                            overflow: TextOverflow.clip)),
+                                            overflow: TextOverflow.ellipsis)),
                                     tooltipBehavior: _tooltip,
                                     series: <ChartSeries<_ChartData, String>>[
                                       BarSeries<_ChartData, String>(
@@ -141,9 +143,9 @@ class HistoryState extends State<History> {
                                         yValueMapper: (_ChartData data, _) =>
                                             data.y,
                                         dataLabelSettings: DataLabelSettings(
-                                            overflowMode: OverflowMode.trim,
+                                            overflowMode: OverflowMode.shift,
                                             labelPosition:
-                                                ChartDataLabelPosition.outside,
+                                                ChartDataLabelPosition.inside,
                                             labelAlignment:
                                                 ChartDataLabelAlignment.bottom,
                                             builder: (dynamic data, _, __, ___,
@@ -151,7 +153,7 @@ class HistoryState extends State<History> {
                                               return Text('${data.x}',
                                                   style: TextStyle(
                                                       overflow:
-                                                          TextOverflow.ellipsis,
+                                                          TextOverflow.fade,
                                                       color: MyThemes
                                                           .history.textColor,
                                                       fontWeight:

@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../overview/recipe/show/showRecipe.dart';
+import '../overview/recipe/show/show.dart';
 import '../shared/service/service.dart';
 import '../shared/settings/theme/theme.dart';
 import '../shared/shared.dart';
@@ -156,6 +156,10 @@ class _CalendarState extends State<Calendar> {
       body: Column(children: [
         events.isNotEmpty
             ? TableCalendar<Event>(
+                // locale: 'pl_PL',
+                daysOfWeekStyle: DaysOfWeekStyle(
+                    weekdayStyle: TextStyle(color: Colors.white),
+                    weekendStyle: TextStyle(color: Colors.yellow[300])),
                 firstDay: kFirstDay,
                 lastDay: kLastDay,
                 focusedDay: _focusedDay,
@@ -166,7 +170,22 @@ class _CalendarState extends State<Calendar> {
                 rangeSelectionMode: _rangeSelectionMode,
                 eventLoader: _getEventsForDay,
                 startingDayOfWeek: StartingDayOfWeek.monday,
+                headerStyle: HeaderStyle(
+                  titleTextStyle: TextStyle(color: Colors.white),
+                  rightChevronIcon: Icon(
+                    Icons.chevron_right,
+                    color: Colors.white,
+                  ),
+                  formatButtonDecoration:
+                      BoxDecoration(border: Border.all(color: Colors.white)),
+                  formatButtonTextStyle: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
                 calendarStyle: CalendarStyle(
+                  defaultTextStyle: TextStyle(color: Colors.white),
+                  weekNumberTextStyle: TextStyle(color: Colors.white),
+                  weekendTextStyle: TextStyle(color: Colors.yellow[300]),
                   // Use `CalendarStyle` to customize the UI
                   outsideDaysVisible: false,
                   todayTextStyle: TextStyle(color: MyThemes.primaryColor),
@@ -241,8 +260,6 @@ class _CalendarState extends State<Calendar> {
                           },
                           title: Text('${value[index]}'),
                           onLongPress: () {
-                            var id;
-                            var date;
                             createBasicAlertDialog(
                                     context, "Willst du das Event entfernen?")
                                 .then((val) async {
@@ -279,6 +296,7 @@ class _CalendarState extends State<Calendar> {
         return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
           return AlertDialog(
+            backgroundColor: MyThemes.canvasBackgroundColor,
             content: FutureBuilder<List<Recipe>>(
                 future: recipes2,
                 builder: (BuildContext context,
@@ -289,6 +307,8 @@ class _CalendarState extends State<Calendar> {
                     children.add(ListTile(
                       title: Text(recipe.name),
                       leading: Radio(
+                        fillColor: MaterialStateColor.resolveWith(
+                            (states) => MyThemes.textColor!.withOpacity(0.5)),
                         value: recipe.id,
                         groupValue: recipeId,
                         onChanged: (value) {
@@ -313,7 +333,10 @@ class _CalendarState extends State<Calendar> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text("Personen "),
+                    Text(
+                      "Personen ",
+                      style: TextStyle(color: MyThemes.textColor),
+                    ),
                     DropdownButton<String>(
                       value: dropdownValue,
                       elevation: 16,
@@ -392,7 +415,6 @@ class _CalendarState extends State<Calendar> {
           .select('name,id')
           .match({'recipe_id': recipeId}).then((value) async {
         late int shopping_list_from_recipes_id;
-        List<RecipeItem> list;
         await supabase
             .from(ShoppingListFromRecipes().TABLENAME)
             .insert({

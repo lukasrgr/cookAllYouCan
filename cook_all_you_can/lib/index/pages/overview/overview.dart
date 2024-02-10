@@ -1,16 +1,21 @@
 import 'dart:developer';
 
-import 'package:cook_all_you_can/index/pages/overview/recipe/show/showRecipe.dart';
+import 'package:cook_all_you_can/index/pages/overview/recipe/show/show.dart';
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart'
     as Service;
+import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
 import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:flutter/material.dart';
+import 'package:multi_dropdown/multiselect_dropdown.dart';
+import 'package:multi_dropdown/widgets/selection_chip.dart';
+import 'package:multi_select_flutter/chip_field/multi_select_chip_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../shared/database/table.dart';
 import '../shared/loadingOverlay/loadingOverlay.dart';
-import 'recipe/create/createRecipe.dart';
+import 'recipe/create/create.dart';
 
 class Overview extends StatefulWidget {
   @override
@@ -18,9 +23,7 @@ class Overview extends StatefulWidget {
 }
 
 class _State extends State<Overview> {
-  List<Ingredient> ingredients = [Ingredient("", "", "")];
-  TextEditingController nameController = TextEditingController();
-  TextEditingController generalController = TextEditingController();
+  MultiSelectController categoryController = new MultiSelectController();
 
   List<Recipe> recipes = [];
   List<Recipe> filteredRecipes = [];
@@ -38,7 +41,7 @@ class _State extends State<Overview> {
     return Scaffold(
         floatingActionButton: FloatingActionButton(
           backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-          shape: roundedRectangleBorder,
+          shape: MyThemes.roundedRectangleBorder,
           onPressed: () => Navigator.of(context)
               .push(
                 MaterialPageRoute(
@@ -56,155 +59,202 @@ class _State extends State<Overview> {
           ),
         ),
         body: SingleChildScrollView(
-            child: FutureBuilder<List<Recipe>>(
-                future: recipes2,
-                builder: (BuildContext context,
-                    AsyncSnapshot<List<Recipe>> snapshot) {
-                  List<Widget> children = <Widget>[];
+            child: Padding(
 
-                  children.add(Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: SearchAnchor(builder:
-                        (BuildContext context, SearchController controller) {
-                      return FocusScope(
-                          child:
+                /// Extend List height to be able to see last item properly: floatingActionButton
+                padding: EdgeInsets.fromLTRB(0, 0, 0, 100),
+                child: FutureBuilder<List<Recipe>>(
+                    future: recipes2,
+                    builder: (BuildContext context,
+                        AsyncSnapshot<List<Recipe>> snapshot) {
+                      List<Widget> children = <Widget>[];
 
-                              // return
-                              SearchBar(
-                                  backgroundColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) =>
-                                              Colors.grey.withOpacity(0.25)),
-                                  textStyle: MaterialStateProperty.resolveWith(
-                                      (states) =>
-                                          TextStyle(color: Colors.white)),
-                                  controller: controller,
-                                  padding: const MaterialStatePropertyAll<
-                                          EdgeInsets>(
-                                      EdgeInsets.symmetric(horizontal: 16.0)),
-                                  // onTap: () {
-                                  //   focusNode.requestFocus();
-                                  // },
-                                  onChanged: (query) {
-                                    // Popup, for extended filters
+                      children.add(Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: SearchAnchor(
+                            viewBackgroundColor: MyThemes.canvasBackgroundColor,
+                            viewSurfaceTintColor:
+                                MyThemes.canvasBackgroundColor,
+                            builder: (BuildContext context,
+                                SearchController controller) {
+                              return FocusScope(
+                                  child:
+                                      // return
+                                      SearchBar(
+                                          // backgroundColor:
+                                          //     MaterialStateProperty.resolveWith(
+                                          //         (states) => Colors.transparent
+                                          //         // ?.withBlue(0)
+                                          //         // .withGreen(0)
+                                          //         ),
+                                          // // backgroundColor:
+                                          // //     MaterialStateProperty.resolveWith(
+                                          // //         (states) => Colors),Pth
+                                          // textStyle:
+                                          //     MaterialStateProperty.resolveWith(
+                                          //         (states) => TextStyle(
+                                          //             color: Colors.white)),
+                                          controller: controller,
+                                          padding:
+                                              const MaterialStatePropertyAll<
+                                                      EdgeInsets>(
+                                                  EdgeInsets.symmetric(
+                                                      horizontal: 16.0)),
+                                          // onTap: () {
+                                          //   focusNode.requestFocus();
+                                          // },
+                                          onChanged: (query) {
+                                            // Popup, for extended filters
+                                            setState(() {
+                                              if (query.isEmpty &&
+                                                  categoryController
+                                                      .selectedOptions
+                                                      .isEmpty) {
+                                                filteredRecipes = recipes;
+                                              } else {
+                                                filteredRecipes = recipes
+                                                    .where((element) => element
+                                                        .name
+                                                        .toLowerCase()
+                                                        .contains(query
+                                                            .toLowerCase()))
+                                                    .toList();
+                                              }
+                                            });
+                                          },
+                                          leading: const Icon(Icons.search,
+                                              color: Colors.white),
+                                          trailing: <Widget>[]));
+                            },
+                            suggestionsBuilder: (BuildContext context,
+                                SearchController controller) {
+                              return List<ListTile>.generate(5, (int index) {
+                                final String item = 'item $index';
+                                return ListTile(
+                                  title: Text(item),
+                                  onTap: () {
                                     setState(() {
-                                      if (query.isEmpty) {
-                                        filteredRecipes = recipes;
-                                      } else {
-                                        filteredRecipes = recipes
-                                            .where((element) => element.name
-                                                .toLowerCase()
-                                                .contains(query.toLowerCase()))
-                                            .toList();
-                                      }
+                                      controller.closeView(item);
                                     });
                                   },
-                                  leading: const Icon(Icons.search,
-                                      color: Colors.white),
-                                  trailing: <Widget>[]));
-                    }, suggestionsBuilder:
-                        (BuildContext context, SearchController controller) {
-                      return List<ListTile>.generate(5, (int index) {
-                        final String item = 'item $index';
-                        return ListTile(
-                          title: Text(item),
-                          onTap: () {
-                            setState(() {
-                              controller.closeView(item);
-                            });
-                          },
-                        );
-                      });
-                    }),
-                  ));
-
-                  /// TODO listview changer
-                  // children.add(Card(
-                  //     child: SegmentedButton(
-                  //   style: ButtonStyle(
-                  //       backgroundColor: MaterialStateColor.resolveWith(
-                  //           (states) => Colors.grey)),
-                  //   segments: [
-                  //     ButtonSegment(
-                  //         value: false,
-                  //         label: Text(''),
-                  //         icon: Icon(Icons.list)),
-                  //     ButtonSegment(
-                  //         value: true,
-                  //         label: Text('asdadsa'),
-                  //         icon: Icon(Icons.view_list)),
-                  //   ],
-                  //   selected: Set.of([isDetailedView]),
-                  //   onSelectionChanged: (newSelection) {
-                  //     setState(() {
-                  //       isDetailedView = newSelection.first;
-                  //     });
-                  //   },
-                  // )));
-
-                  if (snapshot.hasData) {
-                    for (var recipe in filteredRecipes) {
-                      children.add(Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.all(Radius.elliptical(20, 20))),
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => RecipePage(recipe.name),
-                                ),
-                              );
-                            },
-                            onLongPress: () {
-                              confirmRemovePopUp(context).then((value) {
-                                if (value) {
-                                  var snackbar = showNotification(
-                                      context, "Rezept wird entfernt");
-                                  removeRecipe(recipe.name).then((value) => {
-                                        updateRecipes(),
-                                      });
-                                }
+                                );
                               });
-                            },
-                            title: Column(
-                              children: [
-                                Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(recipe.name,
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              color: MyThemes.primaryColor,
-                                              overflow: TextOverflow.clip)),
+                            }),
+                      ));
 
-                                      /// TODO implement rating
-                                      // Row(
-                                      //   children: [
-                                      //     Icon(Icons.star_border_outlined),
-                                      //     Icon(Icons.star_border_outlined),
-                                      //     Icon(Icons.star_border_outlined),
-                                      //     Icon(Icons.star_border_outlined),
-                                      //     Icon(Icons.star_border_outlined),
-                                      //     Text("Rating geht noch nicht")
-                                      //   ],
-                                      // ),
-                                      createDetailsFromRecipe(recipe)
-                                    ]),
-                              ],
-                            ),
-                            // subtitle: Text('Beschreibung'),
-                          )));
-                    }
-                  }
+                      children.add(
+                        MultiSelectChipField<ValueItem?>(
+                          items: Service.Service.category
+                              .map((e) => MultiSelectItem<ValueItem>(
+                                  new ValueItem(
+                                      label: e.name, value: e.id.toString()),
+                                  e.name))
+                              .toList(),
+                          icon: Icon(Icons.check),
+                          chipColor: MyThemes.canvasBackgroundColor,
+                          showHeader: false,
+                          chipShape: MyThemes.roundedRectangleBorder,
+                          decoration: BoxDecoration(boxShadow: [
+                            BoxShadow(
+                                blurStyle: BlurStyle.outer,
+                                color: MyThemes.primaryColor,
+                                blurRadius: 10)
+                          ]),
+                          textStyle: TextStyle(
+                            color: MyThemes.textColor,
+                          ),
+                          selectedTextStyle:
+                              TextStyle(color: MyThemes.primaryColor),
+                          onTap: (List<ValueItem?> values) {
+                            // return null;
+                            setState(() {
+                              if (values.isEmpty) {
+                                filteredRecipes = recipes;
+                              } else {
+                                filteredRecipes = recipes.where((element) {
+                                  for (var option in values) {
+                                    for (var category in element.category!) {
+                                      if (option?.value ==
+                                          category.id.toString()) {
+                                        return true;
+                                      }
+                                    }
+                                  }
+                                  return false;
+                                }).toList();
+                              }
+                            });
+                            return true;
+                          },
+                        ),
+                      );
 
-                  return Center(
-                      child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: children,
-                  ));
-                })));
+                      if (snapshot.hasData) {
+                        for (var recipe in filteredRecipes) {
+                          children.add(Card(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                      Radius.elliptical(20, 20))),
+                              child: ListTile(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          RecipePage(recipe.name),
+                                    ),
+                                  );
+                                },
+                                onLongPress: () {
+                                  confirmRemovePopUp(context).then((value) {
+                                    if (value) {
+                                      var snackbar = showNotification(
+                                          context, "Rezept wird entfernt");
+                                      removeRecipe(recipe.name)
+                                          .then((value) => {
+                                                updateRecipes(),
+                                              });
+                                    }
+                                  });
+                                },
+                                title: Column(
+                                  children: [
+                                    Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(recipe.name,
+                                              style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: MyThemes.primaryColor,
+                                                  overflow: TextOverflow.clip)),
+
+                                          /// TODO implement rating
+                                          // Row(
+                                          //   children: [
+                                          //     Icon(Icons.star_border_outlined),
+                                          //     Icon(Icons.star_border_outlined),
+                                          //     Icon(Icons.star_border_outlined),
+                                          //     Icon(Icons.star_border_outlined),
+                                          //     Icon(Icons.star_border_outlined),
+                                          //     Text("Rating geht noch nicht")
+                                          //   ],
+                                          // ),
+                                          createDetailsFromRecipe(recipe)
+                                        ]),
+                                  ],
+                                ),
+                                // subtitle: Text('Beschreibung'),
+                              )));
+                        }
+                      }
+
+                      // children.sort((a,b)=> a.key);
+
+                      return Center(
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: children));
+                    }))));
   }
 
   Widget createDetailsFromRecipe(Recipe recipe) {
@@ -232,29 +282,30 @@ class _State extends State<Overview> {
       switch (category.name) {
         case 'Meat':
           icons.add(
-              Icon(Icons.lunch_dining, size: size, color: Colors.brown[300]));
+              Icon(Icons.kebab_dining, size: size, color: Colors.brown[300]));
           break;
         case 'Vegan':
           icons.add(Icon(Icons.local_pizza_outlined,
-              size: size, color: Colors.brown));
+              size: size, color: Colors.green[800]));
           break;
         case 'Veggie':
-          icons.add(Icon(Icons.ramen_dining, size: size, color: Colors.brown));
+          icons.add(
+              Icon(Icons.ramen_dining, size: size, color: Colors.lightGreen));
           break;
         case 'Cooking':
-          icons.add(Icon(Icons.soup_kitchen, size: size, color: Colors.brown));
+          icons.add(
+              Icon(Icons.soup_kitchen, size: size, color: Colors.red[300]));
           break;
         case 'Baking':
-          icons.add(
-              Icon(Icons.bakery_dining_sharp, size: size, color: Colors.brown));
+          icons.add(Icon(Icons.bakery_dining_sharp,
+              size: size, color: Colors.brown[300]));
           break;
         case 'Fast-Food':
           icons.add(
-              Icon(Icons.fastfood_outlined, size: size, color: Colors.brown));
+              Icon(Icons.fastfood_outlined, size: size, color: Colors.orange));
           break;
         default:
-          icons.add(Icon(Icons.device_unknown_sharp,
-              size: size, color: Colors.black));
+          icons.add(Icon(Icons.question_mark, size: size, color: Colors.black));
           break;
       }
     }
@@ -296,12 +347,6 @@ class _State extends State<Overview> {
     });
   }
 
-  void updateIngredients() {
-    setState(() {
-      ingredients.add(Ingredient("Zutat", "", ""));
-    });
-  }
-
   /// Find better solution for grouped deleting
   Future<void> removeRecipe(String recipeName) async {
     int recipe_id = 0;
@@ -311,6 +356,11 @@ class _State extends State<Overview> {
         .select('id')
         .match({'name': recipeName}).then((value) async {
       recipe_id = value[0]['id'];
+
+      await supabase
+          .from('recipe_category')
+          .delete()
+          .match({'recipe_id': recipe_id});
       await supabase
           .from(CalendarDayWithEvent().TABLENAME)
           .delete()
