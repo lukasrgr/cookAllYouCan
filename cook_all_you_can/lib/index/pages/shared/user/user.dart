@@ -34,71 +34,71 @@ class UserPageState extends State<UserPage> {
         body: Column(
           children: [
             Card(
+                surfaceTintColor:
+                    MyThemes.canvasBackgroundColor!.withOpacity(0.5),
                 child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                ListTile(
-                    // leading: Icon(Icons.album),
-                    subtitle: Column(
-                  children: [
-                    Padding(
-                        padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(children: [
-                              Text("Benutzer"),
-                            ]),
-                            Column(children: [
-                              Text(supabase?.auth?.currentUser?.email
-                                      ?.toString() ??
-                                  "Undefined"),
-                            ]),
-                          ],
-                        )),
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(children: [
-                            Text("Haushalt"),
-                          ]),
-                          Column(
-                            children: [Text(Service.user.household)],
-                          )
-                        ],
-                      ),
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
+                        // leading: Icon(Icons.album),
+                        subtitle: Column(
+                      children: [
+                        Padding(
+                            padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(children: [
+                                  Text("Benutzer"),
+                                ]),
+                                Column(children: [
+                                  Text(supabase?.auth?.currentUser?.email
+                                          ?.toString() ??
+                                      "Undefined"),
+                                ]),
+                              ],
+                            )),
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(children: [
+                                Text("Haushalt"),
+                              ]),
+                              Column(
+                                children: [Text(Service.user.household)],
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    )),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        // const SizedBox(width: 8),
+                        TextButton(
+                          child: Text(
+                            'LOGOUT',
+                            style: TextStyle(color: MyThemes.primaryColor),
+                          ),
+                          onPressed: () async {
+                            var snackbar =
+                                showNotification(context, "Logging out");
+                            await logout();
+                            snackbar.close();
+                          },
+                        ),
+                      ],
                     ),
+                    // StreamBuilder(
+                    //     stream: stream,
+                    //     builder: (context, snapshot) {
+                    //       return Text("tetst");
+                    //     })
                   ],
                 )),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    const SizedBox(width: 8),
-                    TextButton(
-                      style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.resolveWith(
-                              (states) => Colors.white)),
-                      child: Text(
-                        'LOGOUT',
-                        style: TextStyle(color: MyThemes.primaryColor),
-                      ),
-                      onPressed: () async {
-                        var snackbar = showNotification(context, "Logging out");
-                        await logout();
-                        snackbar.close();
-                      },
-                    ),
-                  ],
-                ),
-                // StreamBuilder(
-                //     stream: stream,
-                //     builder: (context, snapshot) {
-                //       return Text("tetst");
-                //     })
-              ],
-            )),
             // Padding(
             //   padding: EdgeInsets.fromLTRB(10, 20, 10, 0),
             //   child: Row(
@@ -186,8 +186,6 @@ class UserPageState extends State<UserPage> {
     } else {
       // User is not authenticated
       // console.log("User is not authenticated.");
-
-      debugger();
     }
 
     await supabase.auth.signOut();

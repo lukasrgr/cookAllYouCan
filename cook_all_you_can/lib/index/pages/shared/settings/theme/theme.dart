@@ -23,11 +23,17 @@ class MyThemes {
       elevation: 10,
     ),
     //
+    textButtonTheme: TextButtonThemeData(
+        style: ButtonStyle(
+            backgroundColor: MaterialStateColor.resolveWith(
+                (states) => canvasBackgroundColor!))),
+    //
     listTileTheme: ListTileThemeData(
         textColor: Colors.white,
         iconColor: Colors.white,
         tileColor: canvasBackgroundColor?.withOpacity(0.9)),
     //
+
     scaffoldBackgroundColor: canvasBackgroundColor,
     brightness: Brightness.dark,
     canvasColor: canvasBackgroundColor,
@@ -42,6 +48,7 @@ class MyThemes {
     cardColor: canvasBackgroundColor,
     cardTheme: CardTheme(
         color: canvasBackgroundColor,
+        surfaceTintColor: MyThemes.canvasBackgroundColor!.withOpacity(0.5),
         shadowColor: primaryColor,
         clipBehavior: Clip.hardEdge,
         elevation: 10.0,
