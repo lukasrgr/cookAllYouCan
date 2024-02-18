@@ -73,3 +73,8 @@ samples, guidance on mobile development, and a full API reference.
     - flutter build web --web-renderer canvaskit
 
 new logo: flutter pub pub run flutter_launcher_icons:main
+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
+recreate ios,android: flutter create --platforms ios .
+
+allow apple developer -> vpn und geräteverwaltung nachdem mans einmal versucht hat
+-> to be able to use app for ever on device is -> xcode -> product -> profile
