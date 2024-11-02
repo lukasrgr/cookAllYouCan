@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'pages/shared/service/service.dart' as Service;
-import 'pages/shared/settings/theme/theme.dart';
+import 'theme/theme.dart';
 
 // import 'HomePage.dart';
 class LoginDemo extends StatefulWidget {

@@ -3,8 +3,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,6 +19,14 @@ String? validateTextForm(String? value) {
   if (value == null || value.isEmpty) {
     return 'Bitte ausfüllen oder Feld entfernen falls möglich';
   }
+  return null;
+}
+
+String? validateDateString(String? value) {
+  if (value == null || value.isEmpty || !DateHelper.validateDateString(value)) {
+    return 'Bitte ausfüllen oder Feld entfernen falls möglich';
+  }
+
   return null;
 }
 
@@ -115,10 +124,15 @@ confirmRemovePopUp(BuildContext context) async {
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) {
       return AlertDialog(
+        surfaceTintColor: MyThemes.canvasBackgroundColor?.withOpacity(0.5),
+        // backgroundColor: MyThemes.canvasBackgroundColor,
         content: SingleChildScrollView(
           child: ListBody(
-            children: const <Widget>[
-              Text('Willst du das Rezept wirklich entfernen?'),
+            children: <Widget>[
+              Text(
+                'Willst du das Rezept wirklich entfernen?',
+                style: TextStyle(color: MyThemes.textColor),
+              ),
             ],
           ),
         ),
@@ -234,6 +248,7 @@ createBasicAlertDialog(BuildContext context, String text) {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
+          surfaceTintColor: MyThemes.canvasBackgroundColor?.withOpacity(0.5),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -425,10 +440,8 @@ Future<void> saveDataOnDevice2(String id, String value) async {
   // final SharedPreferences prefs =
   await SharedPreferences.getInstance().onError((error, stackTrace) {
     debugPrintStack(stackTrace: stackTrace);
-    debugger();
     throw new Error();
   });
-  debugger();
   // await prefs.setString(id, value);
 }
 

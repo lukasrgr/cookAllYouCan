@@ -1,9 +1,7 @@
 import 'package:cook_all_you_can/index/pages/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/pages/history/history.dart';
-import 'package:cook_all_you_can/index/pages/landing/landingpage.dart';
 import 'package:cook_all_you_can/index/pages/overview/overview.dart';
-import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:cook_all_you_can/index/pages/shared/utils.dart';
 import 'package:cook_all_you_can/index/pages/shoppinglist/shoppinglist.dart';
 import 'package:flutter/material.dart';

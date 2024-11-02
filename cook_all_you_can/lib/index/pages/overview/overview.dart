@@ -1,18 +1,17 @@
 import 'dart:developer';
 
 import 'package:cook_all_you_can/index/pages/overview/recipe/show/show.dart';
+import 'package:cook_all_you_can/index/pages/shared/components/searchbar.dart';
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart'
     as Service;
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_dropdown/multiselect_dropdown.dart';
-import 'package:multi_dropdown/widgets/selection_chip.dart';
-import 'package:multi_select_flutter/chip_field/multi_select_chip_field.dart';
-import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../shared/components/multiSelectChipField.dart';
 import '../shared/database/table.dart';
 import '../shared/loadingOverlay/loadingOverlay.dart';
 import 'recipe/create/create.dart';
@@ -27,7 +26,7 @@ class _State extends State<Overview> {
 
   List<Recipe> recipes = [];
   List<Recipe> filteredRecipes = [];
-  var recipes2;
+  var result;
   final supabase = Supabase.instance.client;
 
   @override
@@ -46,7 +45,6 @@ class _State extends State<Overview> {
               .push(
                 MaterialPageRoute(
                   builder: (context) => LoadingOverlay(
-                    // child: MyHomePage(title: 'Loading Overlay'),
                     child: RecipePopUp(dummyWholeRecipe),
                   ),
                 ),
@@ -64,130 +62,20 @@ class _State extends State<Overview> {
                 /// Extend List height to be able to see last item properly: floatingActionButton
                 padding: EdgeInsets.fromLTRB(0, 0, 0, 100),
                 child: FutureBuilder<List<Recipe>>(
-                    future: recipes2,
+                    future: result,
                     builder: (BuildContext context,
                         AsyncSnapshot<List<Recipe>> snapshot) {
                       List<Widget> children = <Widget>[];
 
                       children.add(Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: SearchAnchor(
-                            viewBackgroundColor: MyThemes.canvasBackgroundColor,
-                            viewSurfaceTintColor:
-                                MyThemes.canvasBackgroundColor,
-                            builder: (BuildContext context,
-                                SearchController controller) {
-                              return FocusScope(
-                                  child:
-                                      // return
-                                      SearchBar(
-                                          // backgroundColor:
-                                          //     MaterialStateProperty.resolveWith(
-                                          //         (states) => Colors.transparent
-                                          //         // ?.withBlue(0)
-                                          //         // .withGreen(0)
-                                          //         ),
-                                          // // backgroundColor:
-                                          // //     MaterialStateProperty.resolveWith(
-                                          // //         (states) => Colors),Pth
-                                          // textStyle:
-                                          //     MaterialStateProperty.resolveWith(
-                                          //         (states) => TextStyle(
-                                          //             color: Colors.white)),
-                                          controller: controller,
-                                          padding:
-                                              const MaterialStatePropertyAll<
-                                                      EdgeInsets>(
-                                                  EdgeInsets.symmetric(
-                                                      horizontal: 16.0)),
-                                          // onTap: () {
-                                          //   focusNode.requestFocus();
-                                          // },
-                                          onChanged: (query) {
-                                            // Popup, for extended filters
-                                            setState(() {
-                                              if (query.isEmpty &&
-                                                  categoryController
-                                                      .selectedOptions
-                                                      .isEmpty) {
-                                                filteredRecipes = recipes;
-                                              } else {
-                                                filteredRecipes = recipes
-                                                    .where((element) => element
-                                                        .name
-                                                        .toLowerCase()
-                                                        .contains(query
-                                                            .toLowerCase()))
-                                                    .toList();
-                                              }
-                                            });
-                                          },
-                                          leading: const Icon(Icons.search,
-                                              color: Colors.white),
-                                          trailing: <Widget>[]));
-                            },
-                            suggestionsBuilder: (BuildContext context,
-                                SearchController controller) {
-                              return List<ListTile>.generate(5, (int index) {
-                                final String item = 'item $index';
-                                return ListTile(
-                                  title: Text(item),
-                                  onTap: () {
-                                    setState(() {
-                                      controller.closeView(item);
-                                    });
-                                  },
-                                );
-                              });
-                            }),
-                      ));
+                          padding: const EdgeInsets.all(15.0),
+                          child: Searchbar(
+                              recipes: this.recipes, callback: updateFilter)));
 
-                      children.add(
-                        MultiSelectChipField<ValueItem?>(
-                          items: Service.Service.category
-                              .map((e) => MultiSelectItem<ValueItem>(
-                                  new ValueItem(
-                                      label: e.name, value: e.id.toString()),
-                                  e.name))
-                              .toList(),
-                          icon: Icon(Icons.check),
-                          chipColor: MyThemes.canvasBackgroundColor,
-                          showHeader: false,
-                          chipShape: MyThemes.roundedRectangleBorder,
-                          decoration: BoxDecoration(boxShadow: [
-                            BoxShadow(
-                                blurStyle: BlurStyle.outer,
-                                color: MyThemes.primaryColor,
-                                blurRadius: 10)
-                          ]),
-                          textStyle: TextStyle(
-                            color: MyThemes.textColor,
-                          ),
-                          selectedTextStyle:
-                              TextStyle(color: MyThemes.primaryColor),
-                          onTap: (List<ValueItem?> values) {
-                            // return null;
-                            setState(() {
-                              if (values.isEmpty) {
-                                filteredRecipes = recipes;
-                              } else {
-                                filteredRecipes = recipes.where((element) {
-                                  for (var option in values) {
-                                    for (var category in element.category!) {
-                                      if (option?.value ==
-                                          category.id.toString()) {
-                                        return true;
-                                      }
-                                    }
-                                  }
-                                  return false;
-                                }).toList();
-                              }
-                            });
-                            return true;
-                          },
-                        ),
-                      );
+                      children.add(MultiSelectChipFields(
+                        recipes: recipes,
+                        callback: updateFilter,
+                      ));
 
                       if (snapshot.hasData) {
                         for (var recipe in filteredRecipes) {
@@ -243,18 +131,21 @@ class _State extends State<Overview> {
                                         ]),
                                   ],
                                 ),
-                                // subtitle: Text('Beschreibung'),
                               )));
                         }
                       }
-
-                      // children.sort((a,b)=> a.key);
 
                       return Center(
                           child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: children));
                     }))));
+  }
+
+  void updateFilter(List<Recipe> param) {
+    setState(() {
+      this.filteredRecipes = param;
+    });
   }
 
   Widget createDetailsFromRecipe(Recipe recipe) {
@@ -279,35 +170,7 @@ class _State extends State<Overview> {
     List<Icon> icons = [];
 
     for (var category in categories) {
-      switch (category.name) {
-        case 'Meat':
-          icons.add(
-              Icon(Icons.kebab_dining, size: size, color: Colors.brown[300]));
-          break;
-        case 'Vegan':
-          icons.add(Icon(Icons.local_pizza_outlined,
-              size: size, color: Colors.green[800]));
-          break;
-        case 'Veggie':
-          icons.add(
-              Icon(Icons.ramen_dining, size: size, color: Colors.lightGreen));
-          break;
-        case 'Cooking':
-          icons.add(
-              Icon(Icons.soup_kitchen, size: size, color: Colors.red[300]));
-          break;
-        case 'Baking':
-          icons.add(Icon(Icons.bakery_dining_sharp,
-              size: size, color: Colors.brown[300]));
-          break;
-        case 'Fast-Food':
-          icons.add(
-              Icon(Icons.fastfood_outlined, size: size, color: Colors.orange));
-          break;
-        default:
-          icons.add(Icon(Icons.question_mark, size: size, color: Colors.black));
-          break;
-      }
+      icons.add(Service.Category.getCategoryIcon(category));
     }
 
     return icons;
@@ -316,11 +179,22 @@ class _State extends State<Overview> {
   void updateRecipes() async {
     recipes = [];
 
-    await supabase
-        .from(RecipeTable().TABLENAME)
-        .select(
-            'name, prep_time, number_of_people,id,created_from_household,recipe_category(id,category(name, id))')
-        .then((value) async {
+    await supabase.rpc('get_recipes10').then((value) {
+      for (final recipe in value) {
+        debugger();
+        recipes.add(Recipe(
+            recipe['recipe_name'].toString(),
+            recipe['prep_time'] != null
+                ? recipe['prep_time'].toString() + ' Min.'
+                : '-',
+            recipe['rating'] != null ? recipe['rating'].toString() : '-',
+            recipe['number_of_people'],
+            recipe['created_from_household'],
+            recipe['recipe_id'],
+            recipe['categories']
+                    ?.map((key, value) => new Service.Category(key, value)) ??
+                []));
+      }
       for (var i = 0; i < value.length; i++) {
         List<dynamic> category = value[i]['recipe_category']
             .map((el) => el['category'])
@@ -343,7 +217,7 @@ class _State extends State<Overview> {
 
     setState(() {
       filteredRecipes = recipes;
-      recipes2 = new Future.value(recipes);
+      result = new Future.value(recipes);
     });
   }
 

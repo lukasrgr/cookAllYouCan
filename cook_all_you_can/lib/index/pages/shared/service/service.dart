@@ -1,3 +1,25 @@
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+class DateHelper {
+  static final formatString = 'yyyy-MM-dd';
+  static String startDate = DateFormat(formatString).format(
+      DateTime.now().subtract(Duration(days: DateTime.now().weekday - 1)));
+  static String endDate = DateFormat(formatString).format(DateTime.now()
+      .add(Duration(days: DateTime.daysPerWeek - DateTime.now().weekday)));
+
+  static bool validateDateString(String value) {
+    try {
+      DateTime.parse(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+}
+
 class Service {
   static late User user = new User(0, 'anon', "anon", '', 0);
 
@@ -82,5 +104,28 @@ class Category {
   int id;
   String name;
 
+  static final double size = 30;
+
   Category(this.id, this.name);
+
+  static Icon getCategoryIcon(Category category) {
+    switch (category.name) {
+      case 'Meat':
+        return Icon(Icons.kebab_dining, size: size, color: Colors.brown[300]);
+      case 'Vegan':
+        return Icon(Icons.local_pizza_outlined,
+            size: size, color: Colors.green[800]);
+      case 'Veggie':
+        return Icon(Icons.ramen_dining, size: size, color: Colors.lightGreen);
+      case 'Cooking':
+        return Icon(Icons.soup_kitchen, size: size, color: Colors.red[300]);
+      case 'Baking':
+        return Icon(Icons.bakery_dining_sharp,
+            size: size, color: Colors.brown[300]);
+      case 'Fast-Food':
+        return Icon(Icons.fastfood_outlined, size: size, color: Colors.orange);
+      default:
+        return Icon(Icons.question_mark, size: size, color: Colors.black);
+    }
+  }
 }

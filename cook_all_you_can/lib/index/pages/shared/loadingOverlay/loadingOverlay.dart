@@ -1,4 +1,4 @@
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:flutter/material.dart';
 
 class LoadingOverlay extends StatefulWidget {

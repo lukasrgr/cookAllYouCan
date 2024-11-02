@@ -1,18 +1,13 @@
-import 'dart:developer';
-
 import 'package:accordion/accordion.dart';
 import 'package:accordion/controllers.dart';
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
-import 'package:cook_all_you_can/index/pages/shared/shared.dart' as globals;
+import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:cook_all_you_can/index/pages/shared/utils.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_material_pickers/flutter_material_pickers.dart';
-import 'package:intl/intl.dart';
-import 'package:settings_ui/settings_ui.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../main.dart';
-import '../database/table.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -35,13 +30,9 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> changePrimaryColor(Color color) async {
-    // globals.saveDataOnDevice("primaryColor", MyThemes.primaryColor.toString());
-    setState(() => {
-          MyThemes.primaryColor = color,
-          isThemeChanging.add(true),
-          MyThemes.customTheme = MyThemes.getThemeData(
-              MyThemes.primaryColor, MyThemes.secondaryColor)
-        });
+    var notification =
+        showNotification(context, "Currently disabled", Colors.orange);
+    return;
   }
 
   Future<void> changeSecondaryColor(Color color) async {
@@ -162,96 +153,13 @@ class _SettingsState extends State<Settings> {
                                               changePrimaryColor);
                                         },
                                         onLongPress: () {
-                                          buildAlertDialog(
-                                              () => setState(() => {
-                                                    MyThemes.primaryColor =
-                                                        MyThemes
-                                                            .defaultPrimaryColor,
-                                                    // globals.saveDataOnDevice(
-                                                    //     "primaryColor", "")
-                                                  }));
-                                          ;
+                                          buildAlertDialog(() => setState(
+                                                () => MyThemes.primaryColor =
+                                                    MyThemes
+                                                        .defaultPrimaryColor,
+                                              ));
                                         })),
-                                Card(
-                                    color: MyThemes.secondaryColor,
-                                    child: ListTile(
-                                        title: Row(
-                                          children: [
-                                            Text(
-                                              "Sekundärfarbe",
-                                              style: TextStyle(
-                                                  color: MyThemes.primaryColor),
-                                            ),
-                                          ],
-                                        ),
-                                        onTap: () {
-                                          dialogBuilder(
-                                              context,
-                                              'secondaryColor',
-                                              changeSecondaryColor);
-                                        },
-                                        onLongPress: () {
-                                          buildAlertDialog(
-                                              () => setState(() => {
-                                                    MyThemes.secondaryColor =
-                                                        MyThemes
-                                                            .defaultSecondaryColor,
-                                                    // globals.saveDataOnDevice(
-                                                    //     "secondaryColor", "")
-                                                  }));
-                                        }))
                               ])),
-                          AccordionSection(
-                              isOpen: false,
-                              contentBorderColor: Colors.black,
-                              leftIcon: const Icon(Icons.build_sharp,
-                                  color: Colors.white),
-                              header: Text('Changelog', style: _headerStyle),
-                              contentBackgroundColor: MyThemes.secondaryColor,
-                              content: Accordion(
-                                  maxOpenSections: 1,
-                                  headerBackgroundColorOpened: Colors.black54,
-                                  headerPadding: const EdgeInsets.symmetric(
-                                      vertical: 0, horizontal: 15),
-                                  children: [
-                                    for (var x = 0;
-                                        x < snapshot.requireData.length;
-                                        x++) ...[
-                                      AccordionSection(
-                                          isOpen: false,
-                                          contentBorderColor: Colors.black,
-                                          header: Text(
-                                              '${DateFormat('dd. MMMM').format(DateTime.parse((snapshot.requireData[x] as Map)['created_at']))}',
-                                              style: _headerStyle),
-                                          contentBackgroundColor:
-                                              MyThemes.secondaryColor,
-                                          content: Column(children: [
-                                            for (var i = 0;
-                                                i <
-                                                    snapshot.requireData[x]
-                                                            ['text']
-                                                        .split(',')
-                                                        .length;
-                                                i++) ...[
-                                              Row(children: [
-                                                Text(
-                                                  "\u2022",
-                                                  style:
-                                                      TextStyle(fontSize: 30),
-                                                ), //bullet text
-                                                SizedBox(
-                                                  width: 10,
-                                                ), //space between bullet and text
-                                                Expanded(
-                                                  child: Text(snapshot
-                                                      .requireData[x]['text']
-                                                      .split(',')[i]), //text
-                                                )
-                                              ])
-                                            ]
-                                          ]))
-                                    ]
-                                  ]))
                         ]));
                   }
 

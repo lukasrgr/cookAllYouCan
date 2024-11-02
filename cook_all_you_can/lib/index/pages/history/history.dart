@@ -8,7 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../shared/service/service.dart';
 
-import '../shared/settings/theme/theme.dart';
+import '../../theme/theme.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
