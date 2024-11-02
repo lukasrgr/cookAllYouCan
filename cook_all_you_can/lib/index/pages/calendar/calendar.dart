@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
@@ -9,7 +10,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../overview/recipe/show/show.dart';
 import '../shared/service/service.dart';
-import '../shared/settings/theme/theme.dart';
+import '../../theme/theme.dart';
 import '../shared/shared.dart';
 import '../shared/utils.dart';
 
@@ -308,7 +309,7 @@ class _CalendarState extends State<Calendar> {
                       title: Text(recipe.name),
                       leading: Radio(
                         fillColor: MaterialStateColor.resolveWith(
-                            (states) => MyThemes.textColor!.withOpacity(0.5)),
+                            (states) => MyThemes.textColor.withOpacity(0.5)),
                         value: recipe.id,
                         groupValue: recipeId,
                         onChanged: (value) {
@@ -424,7 +425,7 @@ class _CalendarState extends State<Calendar> {
               'date': date,
               'household_id': Service.user.household_id
             })
-            .select('id')
+            .select('id, shopping_list_items(ingredient_id)')
             .then((value) async {
               shopping_list_from_recipes_id = value[0]['id'];
               List<ShoppingListItemFromRecipe> list = [];
@@ -449,7 +450,8 @@ class _CalendarState extends State<Calendar> {
                             ? (recipeAmounts[x]['amount'] as int).toDouble()
                             : recipeAmounts[x]['amount'],
                         recipeAmounts[x]['unit'],
-                        date));
+                        date,
+                        0));
                   }
                 }).whenComplete(() async {
                   var jsonArray = [];
@@ -468,9 +470,9 @@ class _CalendarState extends State<Calendar> {
                     });
                   }
 
-                  await supabase
-                      .from(ShoppingListItems().TABLENAME)
-                      .insert(jsonArray);
+                  // await supabase
+                  //     .from(ShoppingListItems().TABLENAME)
+                  //     .insert(jsonArray);
                 });
               });
             });
@@ -533,23 +535,26 @@ class _CalendarState extends State<Calendar> {
 
 class ShoppingListItemFromRecipe {
   int shopping_list_from_recipes_id;
+  List<int>? id;
   String name;
   double amount;
   String unit;
   String date;
   List<String>? recipe_name;
-  List<int>? id;
   String? status; // RecipeAmount amount;
+  String? expiration_date;
+  int ingredient_id;
   ShoppingListItemFromRecipe(this.shopping_list_from_recipes_id, this.name,
-      this.amount, this.unit, this.date,
-      [this.id, this.status, this.recipe_name]);
+      this.amount, this.unit, this.date, this.ingredient_id,
+      [this.id, this.status, this.recipe_name, this.expiration_date]);
 }
 
 class ShoppingListItemFromGeneral {
   int id;
   String name;
+  String? expirationDate;
   String description;
   String status; // RecipeAmount amount;
-  ShoppingListItemFromGeneral(
-      this.id, this.name, this.description, this.status);
+  ShoppingListItemFromGeneral(this.id, this.name, this.description, this.status,
+      [this.expirationDate]);
 }

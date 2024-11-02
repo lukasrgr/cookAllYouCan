@@ -3,13 +3,14 @@ import 'dart:developer';
 import 'package:cook_all_you_can/index/pages/calendar/calendar.dart';
 import 'package:cook_all_you_can/index/pages/shared/database/table.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
+import 'package:cook_all_you_can/index/pages/shoppinglist/toolbar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../shared/service/service.dart';
-import '../shared/settings/theme/theme.dart';
+import '../../theme/theme.dart';
 
 class ShoppingList extends StatefulWidget {
   const ShoppingList({super.key});
@@ -22,7 +23,7 @@ class _ShoppingListState extends State<ShoppingList> {
   final supabase = Supabase.instance.client;
 
   Map<List<int>, Map<String, String>> isChecked = new Map();
-  Map<int, Map<String, String>> isGeneralShoppingListChecked = new Map();
+  Map<int, Map<String, String>> isGeneralShoppingList = new Map();
   List<TextEditingController> generalController =
       List.generate(1, (i) => TextEditingController());
   ScrollController test = new ScrollController();
@@ -30,37 +31,30 @@ class _ShoppingListState extends State<ShoppingList> {
 
   final _formKey = GlobalKey<FormState>();
   final _generalShoppingListformKey = GlobalKey<FormState>();
-  late String firstDayOfWeek;
-  late String lastDayOfWeek;
 
   late Future<List<ShoppingListItemFromRecipe>> shoppingList =
-      getShoppingListFromRecipesForSelectedRange();
+      getShoppingListFromRecipesForSelectedRange(
+          DateHelper.startDate, DateHelper.endDate);
   late Future<List<ShoppingListItemFromGeneral>> generalShoppingList =
       getGeneralShoppingList();
 
   @override
   void initState() {
-    final today = DateTime.now();
-    firstDayOfWeek = DateFormat('yyyy-MM-dd')
-        .format(today.subtract(Duration(days: today.weekday - 1)));
-
-    lastDayOfWeek = DateFormat('yyyy-MM-dd').format(
-        today.add(Duration(days: DateTime.daysPerWeek - today.weekday)));
-
     super.initState();
   }
 
   Future<List<ShoppingListItemFromRecipe>>
-      getShoppingListFromRecipesForSelectedRange() async {
+      getShoppingListFromRecipesForSelectedRange(
+          String startDate, String endDate) async {
     List<ShoppingListItemFromRecipe> result = [];
     List<ShoppingListItemFromRecipe> shoppinglist = [];
 
     await supabase
         .from(ShoppingListItems().TABLENAME)
         .select(
-            'name,amount,unit,shopping_list_from_recipes_id,date,id,status, shopping_list_from_recipes(recipe_name)')
-        .gte('date', firstDayOfWeek)
-        .lte('date', lastDayOfWeek)
+            'name,amount,unit,shopping_list_from_recipes_id,date,id,status,expiration_date,ingredient_id, shopping_list_from_recipes(recipe_name, expiration_date)')
+        .gte('date', startDate)
+        .lte('date', endDate)
         .match({'household_id': Service.user.household_id}).then((value) async {
       for (var val in value) {
         shoppinglist.add(new ShoppingListItemFromRecipe(
@@ -71,9 +65,13 @@ class _ShoppingListState extends State<ShoppingList> {
                 : val['amount'],
             val['unit'],
             val['date'],
+            val['ingredient_id'],
             List.from([val['id'] as int]),
             val['status'],
-            [val['shopping_list_from_recipes']["recipe_name"]]));
+            [
+              val['shopping_list_from_recipes']["recipe_name"],
+              val['shopping_list_from_recipes']['expiration_date'] ?? ""
+            ]));
       }
     }).whenComplete(() {
       shoppinglist.forEach((element) {
@@ -97,33 +95,29 @@ class _ShoppingListState extends State<ShoppingList> {
                 element.amount + value.amount,
                 element.unit,
                 element.date + " | " + value.date,
+                element.ingredient_id,
                 [...?element.id, ...?value.id],
                 element.status,
-                [...?element.recipe_name, ...?value.recipe_name]
-                    .toSet()
-                    .toList());
+                [
+                  ...?element.recipe_name,
+                  ...?value.recipe_name,
+                  value.expiration_date ?? ""
+                ].toSet().toList());
           });
           result[index] = product;
         } else {
           result.add(item);
         }
       }
+
+      return Future.value(result);
     });
 
     // TODO sorting settings,and move into utils
-    result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    result.sort(
-        (a, b) => b.status!.toLowerCase().compareTo(a.status!.toLowerCase()));
-    return Future.delayed(Duration(milliseconds: 100), () => result);
-  }
-
-  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    setState(() {
-      firstDayOfWeek =
-          DateFormat('yyyy-MM-dd').format(args.value.startDate).toString();
-      lastDayOfWeek =
-          DateFormat('yyyy-MM-dd').format(args.value.endDate).toString();
-    });
+    // result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    // result.sort(
+    //     (a, b) => b.status!.toLowerCase().compareTo(a.status!.toLowerCase()));
+    return Future.value(result);
   }
 
   @override
@@ -131,138 +125,9 @@ class _ShoppingListState extends State<ShoppingList> {
     return Column(children: [
       Padding(
           padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Column(children: [
-                  FloatingActionButton.extended(
-                      backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-                      shape: MyThemes.roundedRectangleBorder,
-                      onPressed: () {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                  backgroundColor:
-                                      MyThemes.canvasBackgroundColor,
-                                  title: Text(''),
-                                  content: Container(
-                                    width: MediaQuery.of(context).size.width,
-                                    height: MediaQuery.of(context).size.height /
-                                        2.5,
-                                    child: Column(
-                                      children: <Widget>[
-                                        SfDateRangePicker(
-                                          // startRangeSelectionColor:
-                                          // MyThemes.canvasBackgroundColor,
-                                          // backgroundColor: Colors.black,
-                                          rangeSelectionColor: MyThemes
-                                              .primaryColor
-                                              .withOpacity(0.5),
-                                          rangeTextStyle: TextStyle(
-                                              color: MyThemes.textColor),
-                                          selectionTextStyle:
-                                              TextStyle(color: Colors.black),
-                                          todayHighlightColor: Colors.white,
-                                          headerStyle:
-                                              DateRangePickerHeaderStyle(
-                                                  textStyle: TextStyle(
-                                                      color: Colors.white)),
-                                          monthViewSettings:
-                                              DateRangePickerMonthViewSettings(
-                                                  viewHeaderStyle:
-                                                      DateRangePickerViewHeaderStyle(
-                                                          textStyle: TextStyle(
-                                                              color: Colors
-                                                                  .white))),
-                                          monthCellStyle:
-                                              DateRangePickerMonthCellStyle(
-                                                  leadingDatesTextStyle:
-                                                      TextStyle(
-                                                          color: Colors.white),
-                                                  textStyle: TextStyle(
-                                                      color: Colors.white)),
-                                          onSelectionChanged:
-                                              _onSelectionChanged,
-                                          selectionMode:
-                                              DateRangePickerSelectionMode
-                                                  .range,
-                                          initialSelectedRange: PickerDateRange(
-                                            DateTime.now().subtract(
-                                                const Duration(days: 4)),
-                                            DateTime.now()
-                                                .add(const Duration(days: 7)),
-                                          ),
-                                        ),
-                                        MaterialButton(
-                                          child: Text("OK"),
-                                          onPressed: () {
-                                            setState(() {
-                                              var snackbar = showNotification(
-                                                  context,
-                                                  "Liste wird aktualisiert");
-
-                                              this.shoppingList =
-                                                  getShoppingListFromRecipesForSelectedRange()
-                                                      .whenComplete(() {
-                                                this.generalShoppingList =
-                                                    getGeneralShoppingList()
-                                                        .whenComplete(() {
-                                                  snackbar.close();
-                                                });
-                                              });
-                                            });
-                                            Navigator.pop(context);
-                                          },
-                                        )
-                                      ],
-                                    ),
-                                  ));
-                            });
-                      },
-                      label: Row(
-                        children: [
-                          Text(firstDayOfWeek + " - " + lastDayOfWeek,
-                              style: TextStyle(color: Colors.black)),
-                        ],
-                      )),
-                ]),
-                Column(children: [
-                  FloatingActionButton.extended(
-                    backgroundColor: MyThemes.primaryColor.withOpacity(0.9),
-                    shape: MyThemes.roundedRectangleBorder,
-                    onPressed: () {
-                      setState(() {
-                        var snackbar = showNotification(
-                            context, "Liste wird aktualisiert");
-
-                        this.shoppingList =
-                            getShoppingListFromRecipesForSelectedRange()
-                                .whenComplete(() {
-                          this.generalShoppingList =
-                              getGeneralShoppingList().whenComplete(() {
-                            snackbar.close();
-                          });
-                        });
-                      });
-                    },
-                    label: Row(
-                      children: [
-                        Icon(
-                          Icons.refresh,
-                          color: Colors.black,
-                        ),
-                      ],
-                    ),
-                    // child: Icon(
-                    //   Icons.refresh,
-                    //   color: primaryColor,
-                    // ),
-                  )
-                ])
-              ])),
-
+          child: ShoppingListToolbarWidget(
+            callback: dateRangeCallback,
+          )),
       Expanded(
           child: SingleChildScrollView(
               controller: test,
@@ -308,7 +173,8 @@ class _ShoppingListState extends State<ShoppingList> {
                               activeColor: Colors.transparent,
                               checkColor: MyThemes.primaryColor,
                             ),
-                            Text("Zeige zusätzliche Informationen"),
+                            Text("Zeige zusätzliche Informationen",
+                                style: TextStyle(color: MyThemes.textColor)),
                           ]));
                         }
 
@@ -333,7 +199,18 @@ class _ShoppingListState extends State<ShoppingList> {
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20)),
                             subtitle: showAdditionalInfo
-                                ? Text(data.recipe_name?.join(",") ?? data.date)
+                                ? Column(children: [
+                                    Text(
+                                      data.recipe_name?.join(",") ?? data.date,
+                                      style: TextStyle(
+                                          color: MyThemes.textColor
+                                              .withOpacity(0.5)),
+                                    ),
+                                    data.expiration_date != null &&
+                                            data.expiration_date!.isNotEmpty
+                                        ? Text("MHD: " + data.expiration_date!)
+                                        : Container()
+                                  ])
                                 : null,
                             checkColor: MyThemes.primaryColor,
                             activeColor: Colors.transparent,
@@ -396,40 +273,98 @@ class _ShoppingListState extends State<ShoppingList> {
                               )));
                         }
 
+                        if (snapshot.requireData.isNotEmpty) {
+                          children.add(Row(children: [
+                            Checkbox(
+                              value: showAdditionalInfo,
+                              onChanged: ((bool? value) {
+                                setState(() {
+                                  showAdditionalInfo = value!;
+                                });
+                              }),
+                              activeColor: Colors.transparent,
+                              checkColor: MyThemes.primaryColor,
+                            ),
+                            Text("Zeige zusätzliche Informationen",
+                                style: TextStyle(color: MyThemes.textColor)),
+                          ]));
+                        }
                         for (var data in snapshot.requireData) {
                           children.add(CheckboxListTile(
                               title: Wrap(
                                   alignment: WrapAlignment.spaceBetween,
                                   // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      children: [Text(data.name)],
-                                    ),
+                                    Row(children: [
+                                      Text(data.name),
+                                    ]),
                                   ]),
                               value: stateOfElement(
-                                  data.name, isGeneralShoppingListChecked),
+                                  data.name, isGeneralShoppingList),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20)),
                               checkColor: MyThemes.primaryColor,
                               activeColor: Colors.transparent,
+                              subtitle: showAdditionalInfo
+                                  ? Text(
+                                      data.expirationDate!,
+                                      style: TextStyle(
+                                          color: MyThemes.textColor
+                                              .withOpacity(0.5)),
+                                    )
+                                  : null,
                               onChanged: (bool? value) {
+                                var status = value == true ? 'done' : 'undone';
+                                var expirationDate = null;
                                 if (value == true) {
                                   setState(() {
-                                    isGeneralShoppingListChecked[data.id] = {
-                                      data.name: 'done'
-                                    };
+                                    // isGeneralShoppingList[data.id] = {
+                                    //   data.name: 'done',
+                                    //   data.expirationDate
+                                    // };
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return buildAlertDialog(
+                                              context, submitExpirationDate);
+                                        }).then((_expirationDate) {
+                                      if (_expirationDate == null) {
+                                        isGeneralShoppingList[data.id] = {
+                                          data.name: status,
+                                        };
+                                      } else {
+                                        isGeneralShoppingList[data.id] = {
+                                          data.name: status,
+                                          data.expirationDate!: _expirationDate
+                                        };
+                                      }
+                                      updateGeneralShoppingListItem(
+                                          data.id, status, _expirationDate);
+
+                                      expirationDate = _expirationDate;
+                                    });
                                   });
                                 } else {
                                   setState(() {
-                                    isGeneralShoppingListChecked[data.id] = {
-                                      data.name: 'undone'
+                                    isGeneralShoppingList[data.id] = {
+                                      data.name: status
                                     };
                                   });
+
+                                  updateGeneralShoppingListItem(
+                                      data.id, status, expirationDate);
                                 }
 
                                 // TODO: cleanup
-                                updateGeneralShoppingListItem(data.id);
                               }));
+                          // children.add(
+                          //   TextFormField(
+                          //       controller: new TextEditingController(),
+                          //       autofillHints: [AutofillHints.username],
+                          //       decoration: MyThemes.ThemedInputDecoration(
+                          //           'Email',
+                          //           'Email in form of abc@gmail.com')),
+                          // );
                         }
 
                         for (var x = 0; x < generalController.length; x++) {
@@ -438,10 +373,11 @@ class _ShoppingListState extends State<ShoppingList> {
                               IconButton(
                                 onPressed: () => setState(
                                     () => {generalController.removeAt(x)}),
-                                icon:
-                                    const Icon(Icons.playlist_remove_outlined),
+                                icon: const Icon(Icons.playlist_remove_outlined,
+                                    size: 24),
                               ),
                               Flexible(
+                                  fit: FlexFit.tight,
                                   child: TextFormField(
                                       style: TextStyle(color: Colors.white),
                                       controller: generalController[x],
@@ -461,7 +397,10 @@ class _ShoppingListState extends State<ShoppingList> {
                                         .whenComplete(() => snackbar.close());
                                   }
                                 },
-                                icon: const Icon(Icons.send),
+                                icon: const Icon(
+                                  Icons.send,
+                                  size: 24,
+                                ),
                               ),
                             ],
                           ));
@@ -495,8 +434,6 @@ class _ShoppingListState extends State<ShoppingList> {
                           child: Column(children: children));
                     })
               ]))),
-
-      /// Show Confirmation Button when changes were made
     ]);
   }
 
@@ -516,7 +453,7 @@ class _ShoppingListState extends State<ShoppingList> {
 /**
  * Checks State of ShoppingListItem
  * 
- * @returns the state of a shoppingListItem
+ * @returns the state of a shoppingListItem, checked or non checked
  */
   bool stateOfElement(String name, Map<dynamic, Map<String, String>> map) {
     bool returnValue = false;
@@ -542,22 +479,25 @@ class _ShoppingListState extends State<ShoppingList> {
     List<ShoppingListItemFromGeneral> list = [];
     await supabase
         .from(GeneralShoppingList().TABLENAME)
-        .select('id,name,description,status')
+        .select('*')
         .match({'household_id': Service.user.household_id})
-        .then((value) => {
-              value.forEach((element) {
-                isGeneralShoppingListChecked[element['id']] = {
-                  element['name']: element['status']
-                };
-                // ].putIfAbsent(
-                //     element['id'], () => {element['name']: element['status']});
-                list.add(new ShoppingListItemFromGeneral(
-                    element['id'],
-                    element['name'],
-                    element['description'],
-                    element['status']));
-              }),
-            })
+        .then((values) {
+          values.forEach((element) {
+            String expiration_date = element['expiration_date'] ?? "";
+
+            isGeneralShoppingList[element['id']] = {
+              element['name']: element['status'],
+              'expiration_date': element['expiration_date'] ?? ""
+            };
+            list.add(new ShoppingListItemFromGeneral(
+                element['id'],
+                element['name'],
+                element['description'],
+                element['status'],
+                expiration_date));
+          });
+        })
+        .catchError((err) => print(err))
         .whenComplete(() => list.sort(
             (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())));
     return Future.value(list);
@@ -589,16 +529,39 @@ class _ShoppingListState extends State<ShoppingList> {
     });
   }
 
-  Future<void> updateGeneralShoppingListItem(int id) async {
+  Future<void> updateGeneralShoppingListItem(
+    int id,
+    String status,
+    String? expirationDate,
+  ) async {
     await supabase
         .from(GeneralShoppingList().TABLENAME)
-        .delete()
+        .update({"status": status, "expiration_date": expirationDate})
         .match({"id": id, "household_id": Service.user.household_id})
         .select("id")
+        .then((value) => this.generalShoppingList = getGeneralShoppingList())
         .whenComplete(
             () => this.generalShoppingList = getGeneralShoppingList());
     return Future.delayed(Duration(milliseconds: 50));
   }
+
+  // Date range picker
+  void dateRangeCallback(String startDate, String endDate) {
+    var snackbar = showNotification(context, "Liste wird aktualisiert");
+
+    setState(() {
+      this.shoppingList =
+          getShoppingListFromRecipesForSelectedRange(startDate, endDate)
+              .whenComplete(() {
+        this.generalShoppingList = getGeneralShoppingList().whenComplete(() {
+          snackbar.close();
+        });
+      });
+    });
+  }
+
+  // Expiration date callback
+  void submitExpirationDate(String expirationDate) {}
 }
 
 class GeneralShoppingList extends DatabaseTable {
@@ -610,4 +573,56 @@ class GeneralShoppingList extends DatabaseTable {
     // TODO: implement toJson
     throw UnimplementedError();
   }
+}
+
+buildAlertDialog(BuildContext context, Function(String mhd) callback) {
+  var controller = new TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  return AlertDialog(
+      content: Container(
+        child: Form(
+            key: _formKey,
+            child: TextFormField(
+                controller: controller,
+                autofillHints: [AutofillHints.username],
+                validator: (value) => validateDateString(value),
+                decoration: MyThemes.ThemedInputDecoration(
+                    'MHD (Mindesthaltbarkeitsdatum)',
+                    'in Form of 2024-12-31'))),
+      ),
+      actions: [
+        Row(
+          children: [
+            Column(
+              children: [
+                TextButton(
+                  child: Text(
+                    'Ja',
+                    style: TextStyle(color: MyThemes.primaryColor),
+                  ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      callback(controller.text);
+                      Navigator.of(context).pop(controller.text);
+                    }
+                  },
+                ),
+              ],
+            ),
+            Spacer(),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  child: Text('Nein',
+                      style: TextStyle(color: MyThemes.primaryColor)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            )
+          ],
+        )
+      ]);
 }

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:cook_all_you_can/index/login.dart';
 import 'package:cook_all_you_can/index/pages/overview/overview.dart';
 import 'package:cook_all_you_can/index/pages/shared/settings/settings.dart';
-import 'package:cook_all_you_can/index/pages/shared/settings/theme/theme.dart';
+import 'package:cook_all_you_can/index/theme/theme.dart';
 import 'package:cook_all_you_can/index/pages/shared/shared.dart';
 import 'package:cook_all_you_can/index/pages/shared/user/user.dart';
 import 'package:cook_all_you_can/index/pages/shoppinglist/shoppinglist.dart';

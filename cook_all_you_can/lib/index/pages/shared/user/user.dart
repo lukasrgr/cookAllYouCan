@@ -5,7 +5,7 @@ import 'package:cook_all_you_can/index/pages/shared/service/service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../settings/theme/theme.dart';
+import '../../../theme/theme.dart';
 import '../shared.dart';
 import '../utils.dart';
 

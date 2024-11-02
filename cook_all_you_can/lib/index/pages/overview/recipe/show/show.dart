@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../shared/settings/theme/theme.dart';
+import '../../../../theme/theme.dart';
 import 'package:cook_all_you_can/index/pages/shared/service/service.dart'
     as Service;
 

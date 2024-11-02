@@ -10,7 +10,7 @@ import 'package:multi_dropdown/multiselect_dropdown.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/service/service.dart';
-import '../../../shared/settings/theme/theme.dart';
+import '../../../../theme/theme.dart';
 import '../../../shared/shared.dart';
 
 class RecipePopUp extends StatefulWidget {
