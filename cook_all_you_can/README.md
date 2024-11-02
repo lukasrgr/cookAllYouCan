@@ -116,3 +116,8 @@ new logo: flutter pub pub run flutter_launcher_icons:main
     - flutter build web --web-renderer canvaskit
 
 new logo: flutter pub pub run flutter_launcher_icons:main
+
+recreate ios,android: flutter create --platforms ios .
+
+allow apple developer -> vpn und geräteverwaltung nachdem mans einmal versucht hat
+-> to be able to use app for ever on device is -> xcode -> product -> profile
